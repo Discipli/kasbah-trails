@@ -1,0 +1,1295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="google-site-verification" content="Auh4gb_D-FHk6EbYgt7hKHAnoRL-t-oCu_HU6dKSLCE" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kasbah Trails — Custom Morocco Trip Planning</title>
+    
+    <!-- SEO & Social Media -->
+    <meta name="description" content="We build custom Morocco trips around your dates, budget and interests: cities, mountains, villages and coast. Get your free sample plan.">
+    <meta property="og:title" content="Kasbah Trails — Custom Morocco Trip Planning">
+    <meta property="og:description" content="Plan your Morocco trip before you travel. Real local knowledge, honest budgets.">
+    <meta property="og:image" content="HERO-BG.jpg">
+    <meta property="og:type" content="website">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="logo.png">
+
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- AOS (Animations) -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.locatecontrol/dist/L.Control.Locate.min.css" />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        serif: ['Playfair Display', 'serif'],
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        earth: {
+                            50: '#fdf8f5', 100: '#f5e6dc', 200: '#e8ccb8', 300: '#d9a98c',
+                            400: '#c88a63', 500: '#b86e47', 600: '#a05a3a', 700: '#854831',
+                            800: '#6b3a2a', 900: '#572f23',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        html { 
+    scroll-behavior: smooth; 
+    overflow-x: hidden; 
+    max-width: 100vw;
+}
+body { 
+    overflow-x: hidden; 
+    max-width: 100vw; 
+}
+        .hero-bg {
+            background-color: #572f23; 
+            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.6)), url('HERO-BG.jpg');
+            background-size: cover;
+            background-position: center;
+        }
+        .tab-btn.active { background-color: #b86e47; color: white; border-color: #b86e47; }
+        .fade-transition { transition: opacity 0.3s ease-in-out; }
+        #leaflet-map { width: 100%; height: 100%; z-index: 0; border-radius: 1.5rem; }
+        .leaflet-bar { border-radius: 8px !important; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1) !important; }
+        .leaflet-bar a { background-color: #fff !important; color: #572f23 !important; }
+        .leaflet-bar a:hover { background-color: #fdf8f5 !important; }
+        .leaflet-control-layers { border-radius: 8px !important; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1) !important; font-family: 'Inter', sans-serif !important; }
+        .loading-spinner { border: 3px solid rgba(255,255,255,0.3); border-top: 3px solid #fff; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; display: inline-block; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #c88a63; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #b86e47; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-earth-50 text-earth-900 font-sans antialiased overflow-x-hidden pb-16 lg:pb-0">
+
+    <!-- NAVIGATION -->
+    <nav class="fixed w-full z-50 bg-[#fdf8f5]/95 backdrop-blur-md border-b border-earth-100 transition-all duration-300 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 md:px-6 py-4 md:py-5 flex justify-between items-center relative min-h-[80px] md:min-h-[100px]">
+            
+            <!-- Logo (Left) -->
+            <a href="#" class="flex items-center gap-3 shrink-0 group relative z-10">
+                <img src="logo.png" alt="Kasbah Trails Logo" class="w-10 h-10 md:w-14 md:h-14 rounded-full object-cover shadow-md group-hover:scale-105 transition-transform border border-white/50">
+            </a>
+
+            <!-- Global Watermark (Center) -->
+            <div class="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-0 overflow-hidden">
+                <span class="relative z-10 font-serif text-[16px] sm:text-lg md:text-xl lg:text-2xl xl:text-3xl tracking-[0.2em] md:tracking-[0.25em] xl:tracking-[0.35em] uppercase whitespace-nowrap opacity-40 flex items-center">
+                    <span>
+                        <span class="text-earth-800">K</span><span class="text-earth-500">A</span><span class="text-earth-800">S</span><span class="text-earth-500">B</span><span class="text-earth-800">A</span><span class="text-earth-500">H</span>
+                    </span>
+                    <span class="w-2 md:w-4"></span>
+                    <span>
+                        <span class="text-earth-800">T</span><span class="text-earth-500">R</span><span class="text-earth-800">A</span><span class="text-earth-500">I</span><span class="text-earth-800">L</span><span class="text-earth-500">S</span>
+                    </span>
+                </span>
+            </div>
+
+            <!-- Desktop Menu -->
+            <div class="hidden lg:flex flex-1 items-center justify-between mx-4 xl:mx-12 relative z-10 gap-4">
+                <div class="flex items-center gap-4 lg:gap-6 xl:gap-8 text-[11px] xl:text-[12px] font-sans font-semibold tracking-[0.15em] uppercase text-earth-800 shrink-0">
+                    <a href="#destinations" class="hover:text-earth-500 transition" data-i18n="nav_dest">Destinations</a>
+                    <a href="#how-it-works" class="hover:text-earth-500 transition" data-i18n="nav_how">How we work</a>
+                </div>
+                
+                <div class="flex items-center gap-4 lg:gap-6 xl:gap-8 text-[11px] xl:text-[12px] font-sans font-semibold tracking-[0.15em] uppercase text-earth-800 shrink-0">
+                    <a href="#itinerary" class="hover:text-earth-500 transition" data-i18n="nav_sample">Sample Plan</a>
+                    <a href="#tips" class="hover:text-earth-500 transition" data-i18n="nav_tips">Good to Know</a>
+                </div>
+            </div>
+
+            <!-- Right Side Controls -->
+            <div class="flex items-center gap-3 relative z-10 shrink-0">
+                <!-- Desktop Language Switcher -->
+                <div class="hidden lg:block relative group">
+                    <button class="flex items-center gap-2 border border-earth-200 rounded-full px-4 py-1.5 hover:border-earth-400 transition bg-white shadow-sm">
+                        <i class="fa-solid fa-globe text-earth-500 text-xs"></i>
+                        <span class="font-semibold text-earth-700 current-lang-display">EN</span>
+                        <i class="fa-solid fa-chevron-down text-[10px] text-earth-400"></i>
+                    </button>
+                    <div class="absolute right-0 mt-2 w-32 bg-white border border-earth-100 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 overflow-hidden">
+                        <button onclick="changeLanguage('en')" class="block w-full text-left px-4 py-2 text-sm hover:bg-earth-50 hover:text-earth-600 transition">English</button>
+                        <button onclick="changeLanguage('fr')" class="block w-full text-left px-4 py-2 text-sm hover:bg-earth-50 hover:text-earth-600 transition">Français</button>
+                        <button onclick="changeLanguage('es')" class="block w-full text-left px-4 py-2 text-sm hover:bg-earth-50 hover:text-earth-600 transition">Español</button>
+                        <button onclick="changeLanguage('de')" class="block w-full text-left px-4 py-2 text-sm hover:bg-earth-50 hover:text-earth-600 transition">Deutsch</button>
+                        <button onclick="changeLanguage('it')" class="block w-full text-left px-4 py-2 text-sm hover:bg-earth-50 hover:text-earth-600 transition">Italiano</button>
+                    </div>
+                </div>
+
+                <!-- Mobile Controls -->
+                <div class="flex items-center gap-3 lg:hidden">
+                    <div class="relative">
+                        <button id="mobile-lang-btn" class="flex items-center gap-1 border border-earth-200 rounded-full px-2 py-1 bg-white shadow-sm">
+                            <i class="fa-solid fa-globe text-earth-500 text-[10px]"></i>
+                            <span class="font-semibold text-earth-700 text-xs current-lang-display">EN</span>
+                        </button>
+                        <div id="mobile-lang-menu" class="absolute right-0 mt-2 w-28 bg-white border border-earth-100 rounded-xl shadow-xl hidden z-50 overflow-hidden">
+                            <button onclick="changeLanguage('en'); toggleLangMenu('mobile-lang-menu')" class="block w-full text-left px-3 py-1.5 text-xs hover:bg-earth-50 hover:text-earth-600 transition">English</button>
+                            <button onclick="changeLanguage('fr'); toggleLangMenu('mobile-lang-menu')" class="block w-full text-left px-3 py-1.5 text-xs hover:bg-earth-50 hover:text-earth-600 transition">Français</button>
+                            <button onclick="changeLanguage('es'); toggleLangMenu('mobile-lang-menu')" class="block w-full text-left px-3 py-1.5 text-xs hover:bg-earth-50 hover:text-earth-600 transition">Español</button>
+                            <button onclick="changeLanguage('de'); toggleLangMenu('mobile-lang-menu')" class="block w-full text-left px-3 py-1.5 text-xs hover:bg-earth-50 hover:text-earth-600 transition">Deutsch</button>
+                            <button onclick="changeLanguage('it'); toggleLangMenu('mobile-lang-menu')" class="block w-full text-left px-3 py-1.5 text-xs hover:bg-earth-50 hover:text-earth-600 transition">Italiano</button>
+                        </div>
+                    </div>
+                    <button onclick="toggleMobileMenu()" class="text-earth-700 text-2xl focus:outline-none hover:text-earth-500 transition">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MOBILE MENU OVERLAY (Outside Nav) -->
+    <div id="mobile-menu-overlay" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[90] hidden opacity-0 transition-opacity duration-300 lg:hidden" onclick="toggleMobileMenu()"></div>
+
+    <!-- MOBILE MENU DRAWER (Outside Nav) -->
+    <div id="mobile-menu" class="fixed top-0 right-0 h-[100dvh] w-[85%] max-w-sm bg-[#fdf8f5] shadow-2xl z-[100] transform translate-x-full transition-transform duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] lg:hidden flex flex-col border-l border-earth-100 overflow-hidden">
+        
+        <!-- Watermark (Mountain Only) -->
+        <div class="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-0 overflow-hidden">
+            <img src="logo2.png" alt="Watermark" class="w-[200%] max-w-none opacity-[0.1] -translate-y-12">
+        </div>
+
+        <!-- Close Button -->
+        <div class="flex justify-end p-6 relative z-10">
+            <button onclick="toggleMobileMenu()" class="text-earth-900 text-3xl focus:outline-none hover:rotate-90 transition-transform duration-300">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        
+        <!-- Navigation Links -->
+        <div class="flex flex-col items-center justify-center flex-1 gap-8 text-base font-sans font-medium tracking-[0.2em] uppercase text-earth-900 relative z-10">
+            <a href="#destinations" class="hover:text-earth-500 transition" onclick="toggleMobileMenu()" data-i18n="nav_dest">Destinations</a>
+            <a href="#how-it-works" class="hover:text-earth-500 transition" onclick="toggleMobileMenu()" data-i18n="nav_how">How we work</a>
+            <a href="#about" class="hover:text-earth-500 transition" onclick="toggleMobileMenu()" data-i18n="nav_about">About Us</a>
+            <a href="#itinerary" class="hover:text-earth-500 transition" onclick="toggleMobileMenu()" data-i18n="nav_sample">Sample Plan</a>
+            <a href="#tips" class="hover:text-earth-500 transition" onclick="toggleMobileMenu()" data-i18n="nav_tips">Good to Know</a>
+            <a href="#contact" class="hover:text-earth-500 transition font-semibold text-earth-900" onclick="toggleMobileMenu()" data-i18n="nav_contact">Contact</a>
+        </div>
+
+        <!-- Language Switcher -->
+        <div class="p-8 flex justify-center gap-4 text-sm font-semibold text-earth-600 relative z-10">
+            <button onclick="changeLanguage('en')" class="hover:text-earth-900 transition">EN</button>
+            <span class="text-earth-300">|</span>
+            <button onclick="changeLanguage('fr')" class="hover:text-earth-900 transition">FR</button>
+            <span class="text-earth-300">|</span>
+            <button onclick="changeLanguage('es')" class="hover:text-earth-900 transition">ES</button>
+            <span class="text-earth-300">|</span>
+            <button onclick="changeLanguage('de')" class="hover:text-earth-900 transition">DE</button>
+            <span class="text-earth-300">|</span>
+            <button onclick="changeLanguage('it')" class="hover:text-earth-900 transition">IT</button>
+        </div>
+    </div>
+
+    <!-- HERO SECTION -->
+    <section class="hero-bg min-h-screen flex items-center justify-center text-center text-white px-4 pt-28 md:pt-0">
+        <div class="max-w-4xl mx-auto" data-aos="fade-up" data-aos-duration="1000">
+            <span class="inline-block bg-earth-500/20 border border-earth-300/30 text-earth-100 px-4 py-1.5 rounded-full text-xs font-semibold tracking-[0.2em] uppercase mb-6 backdrop-blur-sm" data-i18n="hero_badge">
+                Morocco · Planned around you
+            </span>
+            <h1 class="font-serif text-4xl md:text-7xl font-bold mb-6 leading-tight drop-shadow-lg" data-i18n="hero_title">
+                Beyond the Souks
+            </h1>
+            <p class="text-base md:text-xl text-earth-100/90 max-w-2xl mx-auto mb-10 leading-relaxed font-light text-balance" data-i18n="hero_desc">
+                Most guides send you from Marrakech straight to the dunes — and skip everything in between. We build custom Morocco trips around your dates, budget and interests: cities, mountains, villages and coast.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="https://forms.gle/G3oHUm6NoPRtan1dA" target="_blank" class="bg-earth-500 hover:bg-earth-600 text-white px-8 py-4 rounded-full font-semibold transition shadow-lg shadow-earth-500/30 flex items-center justify-center gap-2">
+                    <span data-i18n="hero_btn1">Get my free sample plan</span> <i class="fa-solid fa-arrow-right"></i>
+                </a>
+                <a href="#how-it-works" class="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/30 text-white px-8 py-4 rounded-full font-semibold transition flex items-center justify-center gap-2" data-i18n="hero_btn2">
+                    See how it works
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- DESTINATIONS SECTION -->
+    <section id="destinations" class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-12" data-aos="fade-up">
+                <span class="text-earth-500 font-semibold tracking-[0.2em] uppercase text-xs mb-3 block" data-i18n="dest_subtitle">Where to?</span>
+                <h2 class="font-serif text-3xl md:text-5xl font-bold text-earth-900" data-i18n="dest_title">Explore Morocco</h2>
+                <p class="text-earth-600 mt-4 max-w-2xl mx-auto" data-i18n="dest_desc">Every region has its own character. Here are a few places we love — but we can plan your trip anywhere in Morocco.</p>
+            </div>
+            
+            <div class="flex overflow-x-auto hide-scrollbar gap-6 pb-8 snap-x">
+                <div class="min-w-[280px] md:min-w-[320px] bg-earth-50 rounded-3xl overflow-hidden shadow-sm border border-earth-100 snap-center group">
+                    <div class="h-48 overflow-hidden">
+                        <img src="DEST-MARRAKECH.jpg" alt="Marrakech" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                    </div>
+                    <div class="p-6">
+                        <h3 class="font-serif font-bold text-xl mb-2 text-earth-900">Marrakech</h3>
+                        <p class="text-sm text-earth-600" data-i18n="dest_1">Souks, palaces and Jemaa el-Fna</p>
+                    </div>
+                </div>
+                <div class="min-w-[280px] md:min-w-[320px] bg-earth-50 rounded-3xl overflow-hidden shadow-sm border border-earth-100 snap-center group">
+                    <div class="h-48 overflow-hidden">
+                        <img src="DEST-FES.jpg" alt="Fes" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                    </div>
+                    <div class="p-6">
+                        <h3 class="font-serif font-bold text-xl mb-2 text-earth-900">Fes</h3>
+                        <p class="text-sm text-earth-600" data-i18n="dest_2">The oldest medina and its crafts</p>
+                    </div>
+                </div>
+                <div class="min-w-[280px] md:min-w-[320px] bg-earth-50 rounded-3xl overflow-hidden shadow-sm border border-earth-100 snap-center group">
+                    <div class="h-48 overflow-hidden">
+                        <img src="DEST-CHEFCHAOUEN.jpg" alt="Chefchaouen" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                    </div>
+                    <div class="p-6">
+                        <h3 class="font-serif font-bold text-xl mb-2 text-earth-900">Chefchaouen</h3>
+                        <p class="text-sm text-earth-600" data-i18n="dest_3">The blue city</p>
+                    </div>
+                </div>
+                <div class="min-w-[280px] md:min-w-[320px] bg-earth-50 rounded-3xl overflow-hidden shadow-sm border border-earth-100 snap-center group">
+                    <div class="h-48 overflow-hidden">
+                        <img src="DEST-SAHARA.jpg" alt="Sahara" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                    </div>
+                    <div class="p-6">
+                        <h3 class="font-serif font-bold text-xl mb-2 text-earth-900">Sahara</h3>
+                        <p class="text-sm text-earth-600" data-i18n="dest_4">Dunes and desert camps</p>
+                    </div>
+                </div>
+                <div class="min-w-[280px] md:min-w-[320px] bg-earth-50 rounded-3xl overflow-hidden shadow-sm border border-earth-100 snap-center group">
+                    <div class="h-48 overflow-hidden">
+                        <img src="DEST-ATLAS.jpg" alt="Atlas Mountains" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                    </div>
+                    <div class="p-6">
+                        <h3 class="font-serif font-bold text-xl mb-2 text-earth-900">Atlas Mountains</h3>
+                        <p class="text-sm text-earth-600" data-i18n="dest_5">Berber villages and valleys</p>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center mt-4">
+                <p class="text-earth-600 italic" data-i18n="dest_more">…and anywhere else in Morocco you want to go.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- HOW WE WORK & WHAT YOU GET -->
+    <section id="how-it-works" class="py-24 bg-earth-50">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-16" data-aos="fade-up">
+                <span class="text-earth-500 font-semibold tracking-[0.2em] uppercase text-xs mb-3 block" data-i18n="how_subtitle">Process</span>
+                <h2 class="font-serif text-4xl md:text-5xl font-bold text-earth-900" data-i18n="how_title">How we work</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+                <div class="relative bg-white p-8 rounded-3xl border border-earth-100 shadow-sm text-center" data-aos="fade-up" data-aos-delay="0">
+                    <div class="w-16 h-16 bg-earth-100 text-earth-600 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl font-bold font-serif">1</div>
+                    <h3 class="font-serif font-bold text-xl mb-3 text-earth-900" data-i18n="how_1_title">Fill out a quick form</h3>
+                    <p class="text-earth-600 text-sm" data-i18n="how_1_desc">Your dates, budget & interests</p>
+                </div>
+                <div class="relative bg-white p-8 rounded-3xl border border-earth-100 shadow-sm text-center" data-aos="fade-up" data-aos-delay="100">
+                    <div class="w-16 h-16 bg-earth-100 text-earth-600 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl font-bold font-serif">2</div>
+                    <h3 class="font-serif font-bold text-xl mb-3 text-earth-900" data-i18n="how_2_title">We build your route</h3>
+                    <p class="text-earth-600 text-sm" data-i18n="how_2_desc">Real local knowledge + careful planning</p>
+                </div>
+                <div class="relative bg-white p-8 rounded-3xl border border-earth-100 shadow-sm text-center" data-aos="fade-up" data-aos-delay="200">
+                    <div class="w-16 h-16 bg-earth-100 text-earth-600 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl font-bold font-serif">3</div>
+                    <h3 class="font-serif font-bold text-xl mb-3 text-earth-900" data-i18n="how_3_title">Get your custom plan</h3>
+                    <p class="text-earth-600 text-sm" data-i18n="how_3_desc">A full PDF: itinerary, budget, tips</p>
+                </div>
+            </div>
+
+            <div class="bg-earth-900 rounded-3xl p-8 md:p-12 text-white flex flex-col md:flex-row items-center gap-8 shadow-xl" data-aos="fade-up">
+                <div class="flex-1">
+                    <h3 class="font-serif text-2xl md:text-3xl font-bold mb-4" data-i18n="how_get_title">What you get:</h3>
+                    <ul class="space-y-3">
+                        <li class="flex items-center gap-3"><i class="fa-solid fa-check text-earth-400"></i> <span data-i18n="how_get_1">Daily itinerary</span></li>
+                        <li class="flex items-center gap-3"><i class="fa-solid fa-check text-earth-400"></i> <span data-i18n="how_get_2">Realistic budget</span></li>
+                        <li class="flex items-center gap-3"><i class="fa-solid fa-check text-earth-400"></i> <span data-i18n="how_get_3">Practical & cultural tips</span></li>
+                        <li class="flex items-center gap-3"><i class="fa-solid fa-check text-earth-400"></i> <span data-i18n="how_get_4">Useful Darija phrases</span></li>
+                    </ul>
+                </div>
+                <div class="flex-1 border-t md:border-t-0 md:border-l border-earth-700 pt-6 md:pt-0 md:pl-8">
+                    <p class="text-earth-200 italic text-lg leading-relaxed" data-i18n="how_note">
+                        "We plan your trip before you travel — you book and travel independently. Your first sample plan is free."
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ABOUT US -->
+    <section id="about" class="py-24 bg-white">
+        <div class="max-w-5xl mx-auto px-6">
+            <div class="flex flex-col md:flex-row items-center gap-12" data-aos="fade-up">
+                <div class="w-full md:w-1/2">
+                <div class="relative rounded-3xl overflow-hidden shadow-xl border-4 border-earth-50 aspect-[4/3] max-h-[350px] md:max-h-[450px]">
+                <img src="ABOUT-US.jpg" alt="About Kasbah Trails" class="object-cover w-full h-full">
+                </div>
+                </div>
+                <div class="w-full md:w-1/2">
+                    <span class="text-earth-500 font-semibold tracking-[0.2em] uppercase text-xs mb-3 block" data-i18n="about_subtitle">Our Story</span>
+                    <h2 class="font-serif text-3xl md:text-4xl font-bold text-earth-900 mb-6" data-i18n="about_title">About Kasbah Trails</h2>
+                    <div class="text-earth-600 leading-relaxed space-y-4">
+                        <p data-i18n="about_p1">
+                            Rooted in a small village in the Atlas Mountains, Kasbah Trails was born from a simple belief: the best trips are the ones you don't find in standard guidebooks.
+                        </p>
+                        <p data-i18n="about_p2">
+                            As a local, I plan trips the way I would for a friend visiting me — with honest budgets, real local knowledge, and no filler.
+                        </p>
+                        <p data-i18n="about_p3">
+                            I do the planning. You book, and you travel on your own terms.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SAMPLE PLAN INTRO -->
+    <section class="pt-24 pb-8 bg-earth-50">
+        <div class="max-w-4xl mx-auto px-6 text-center" data-aos="fade-up">
+            <span class="text-earth-500 font-semibold tracking-[0.2em] uppercase text-xs mb-3 block" data-i18n="sample_subtitle">Example</span>
+            <h2 class="font-serif text-3xl md:text-5xl font-bold text-earth-900 mb-4" data-i18n="sample_title">
+                Sample plan: 5 days from Marrakech to the Atlas villages
+            </h2>
+            <p class="text-earth-600 text-lg" data-i18n="sample_desc">
+                This is just one example route. Every region of Morocco has its own character — your plan is built around the places you choose.
+            </p>
+        </div>
+    </section>
+
+    <!-- TRIP OVERVIEW (Premium Bento Style) -->
+    <section class="py-12 bg-earth-50">
+        <div class="max-w-7xl mx-auto px-6">
+            <h3 class="text-center font-serif text-2xl font-bold mb-8 text-earth-800" data-i18n="sample_details">Sample plan details</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="relative bg-white p-8 rounded-3xl border border-earth-100 overflow-hidden group hover:shadow-xl transition-all duration-300" data-aos="fade-up" data-aos-delay="0">
+                    <i class="fa-solid fa-compass absolute -right-6 -bottom-6 text-[120px] text-earth-50 group-hover:scale-110 transition-all duration-500 pointer-events-none"></i>
+                    <div class="relative z-10">
+                        <div class="w-14 h-14 bg-earth-50 text-earth-600 rounded-2xl shadow-sm flex items-center justify-center mb-6 text-2xl group-hover:bg-earth-600 group-hover:text-white transition-colors duration-300">
+                            <i class="fa-solid fa-compass"></i>
+                        </div>
+                        <h3 class="font-serif font-bold text-xl mb-2 text-earth-900" data-i18n="ov_style_title">Travel Style</h3>
+                        <p class="text-sm text-earth-600 leading-relaxed" data-i18n="ov_style_desc">Nature, photography, culture – relaxed pace</p>
+                    </div>
+                </div>
+                <div class="relative bg-white p-8 rounded-3xl border border-earth-100 overflow-hidden group hover:shadow-xl transition-all duration-300" data-aos="fade-up" data-aos-delay="100">
+                    <i class="fa-solid fa-coins absolute -right-6 -bottom-6 text-[120px] text-earth-50 group-hover:scale-110 transition-all duration-500 pointer-events-none"></i>
+                    <div class="relative z-10">
+                        <div class="w-14 h-14 bg-earth-50 text-earth-600 rounded-2xl shadow-sm flex items-center justify-center mb-6 text-2xl group-hover:bg-earth-600 group-hover:text-white transition-colors duration-300">
+                            <i class="fa-solid fa-coins"></i>
+                        </div>
+                        <h3 class="font-serif font-bold text-xl mb-2 text-earth-900" data-i18n="ov_budget_title">Budget Level</h3>
+                        <p class="text-sm text-earth-600 leading-relaxed" data-i18n="ov_budget_desc">Mid-range (~700€ / person, excl. flights)</p>
+                    </div>
+                </div>
+                <div class="relative bg-white p-8 rounded-3xl border border-earth-100 overflow-hidden group hover:shadow-xl transition-all duration-300" data-aos="fade-up" data-aos-delay="200">
+                    <i class="fa-solid fa-people-group absolute -right-6 -bottom-6 text-[120px] text-earth-50 group-hover:scale-110 transition-all duration-500 pointer-events-none"></i>
+                    <div class="relative z-10">
+                        <div class="w-14 h-14 bg-earth-50 text-earth-600 rounded-2xl shadow-sm flex items-center justify-center mb-6 text-2xl group-hover:bg-earth-600 group-hover:text-white transition-colors duration-300">
+                            <i class="fa-solid fa-people-group"></i>
+                        </div>
+                        <h3 class="font-serif font-bold text-xl mb-2 text-earth-900" data-i18n="ov_travelers_title">Travelers</h3>
+                        <p class="text-sm text-earth-600 leading-relaxed" data-i18n="ov_travelers_desc">2 people, solo-friendly route</p>
+                    </div>
+                </div>
+                <div class="relative bg-white p-8 rounded-3xl border border-earth-100 overflow-hidden group hover:shadow-xl transition-all duration-300" data-aos="fade-up" data-aos-delay="300">
+                    <i class="fa-solid fa-cloud-sun absolute -right-6 -bottom-6 text-[120px] text-earth-50 group-hover:scale-110 transition-all duration-500 pointer-events-none"></i>
+                    <div class="relative z-10">
+                        <div class="w-14 h-14 bg-earth-50 text-earth-600 rounded-2xl shadow-sm flex items-center justify-center mb-6 text-2xl group-hover:bg-earth-600 group-hover:text-white transition-colors duration-300">
+                            <i class="fa-solid fa-cloud-sun"></i>
+                        </div>
+                        <h3 class="font-serif font-bold text-xl mb-2 text-earth-900" data-i18n="ov_season_title">Best Season</h3>
+                        <p class="text-sm text-earth-600 leading-relaxed" data-i18n="ov_season_desc">March–May or September–November</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ITINERARY SECTION -->
+    <section id="itinerary" class="py-12 bg-earth-50">
+        <div class="max-w-5xl mx-auto px-6">
+            <div class="text-center mb-12" data-aos="fade-up">
+                <h2 class="font-serif text-3xl md:text-4xl font-bold text-earth-900" data-i18n="itin_title">Day by Day Itinerary</h2>
+            </div>
+            <div class="flex flex-wrap justify-center gap-3 mb-12" data-aos="fade-up">
+                <button class="tab-btn active px-6 py-3 rounded-full border border-earth-200 text-earth-700 font-semibold text-sm transition hover:border-earth-400" onclick="showDay(1)" data-i18n="day_1">Day 1</button>
+                <button class="tab-btn px-6 py-3 rounded-full border border-earth-200 text-earth-700 font-semibold text-sm transition hover:border-earth-400" onclick="showDay(2)" data-i18n="day_2">Day 2</button>
+                <button class="tab-btn px-6 py-3 rounded-full border border-earth-200 text-earth-700 font-semibold text-sm transition hover:border-earth-400" onclick="showDay(3)" data-i18n="day_3">Day 3</button>
+                <button class="tab-btn px-6 py-3 rounded-full border border-earth-200 text-earth-700 font-semibold text-sm transition hover:border-earth-400" onclick="showDay(4)" data-i18n="day_4">Day 4</button>
+                <button class="tab-btn px-6 py-3 rounded-full border border-earth-200 text-earth-700 font-semibold text-sm transition hover:border-earth-400" onclick="showDay(5)" data-i18n="day_5">Day 5</button>
+            </div>
+            <div id="content-area" class="bg-white rounded-3xl shadow-xl p-6 md:p-10 border border-earth-100 relative min-h-[500px]"></div>
+        </div>
+    </section>
+
+    <!-- MAP SECTION -->
+    <section id="map" class="py-12 bg-earth-50">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-12" data-aos="fade-up">
+                <h2 class="font-serif text-3xl md:text-4xl font-bold text-earth-900" data-i18n="map_title">Your Route on the Map</h2>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="w-full min-w-0 relative h-[400px] md:h-[550px]">
+                    <div class="absolute top-4 md:top-6 left-1/2 transform -translate-x-1/2 z-[1000] w-[90%] max-w-sm md:max-w-md">
+                        <div class="relative shadow-xl rounded-full">
+                            <input type="text" id="custom-search" autocomplete="off" class="w-full px-5 py-2.5 md:py-3 rounded-full border border-earth-200 focus:outline-none focus:ring-2 focus:ring-earth-500 font-sans text-earth-900 placeholder-earth-400 pl-12 text-sm md:text-base" placeholder="Search (e.g. Rabat...)" >
+                             <button type="button" onclick="triggerSearch()" class="absolute left-4 top-1/2 transform -translate-y-1/2 text-earth-400 hover:text-earth-600 transition-colors duration-200 z-10">
+                             <i class="fa-solid fa-search text-lg"></i>
+                             </button>
+                            <ul id="custom-suggestions" class="absolute w-full mt-2 bg-white rounded-2xl shadow-2xl overflow-hidden hidden z-[1001] max-h-60 overflow-y-auto border border-earth-100"></ul>
+                        </div>
+                    </div>
+                    <div id="leaflet-map" class="w-full h-full rounded-3xl shadow-xl border-4 border-white z-0 relative"></div>
+                </div>
+                
+                <div class="bg-white rounded-3xl border border-earth-100 h-auto md:h-[550px] overflow-hidden shadow-xl flex flex-col relative min-w-0">
+                    <div class="h-48 md:h-1/2 w-full relative bg-earth-100 group">
+                        <img id="map-info-img" src="DAY1-2.jpg" alt="Location Image" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                        <div id="map-info-loading" class="hidden absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-10">
+                            <span class="loading-spinner"></span>
+                        </div>
+                    </div>
+                    <div class="p-6 md:p-8 flex-1 flex flex-col relative bg-white">
+                        <h3 id="map-info-title" class="font-serif text-2xl md:text-3xl font-bold text-earth-900 mb-3">Marrakech</h3>
+                        <p id="map-info-desc" class="text-earth-600 leading-relaxed mb-6 text-sm md:text-base flex-1 overflow-y-auto custom-scrollbar">
+                            The vibrant heart of Morocco.
+                        </p>
+                        <div id="map-info-tags" class="flex flex-wrap gap-2 mt-auto"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- BUDGET BREAKDOWN SECTION -->
+    <section id="budget" class="py-12 bg-earth-50">
+        <div class="max-w-4xl mx-auto px-6">
+            <div class="text-center mb-12" data-aos="fade-up">
+                <h2 class="font-serif text-3xl md:text-4xl font-bold text-earth-900" data-i18n="bud_title">Budget for this sample</h2>
+                <p class="text-earth-600 mt-4 max-w-2xl mx-auto" data-i18n="bud_desc">No hidden fees, no inflated prices – here's what a trip like this actually costs per person.</p>
+            </div>
+            <div class="bg-white rounded-3xl border border-earth-100 overflow-hidden shadow-lg" data-aos="fade-up">
+                <table class="w-full text-left">
+                    <thead class="bg-earth-700 text-white">
+                        <tr>
+                            <th class="px-6 py-4 text-sm font-semibold uppercase tracking-wider" data-i18n="bud_col1">Category</th>
+                            <th class="px-6 py-4 text-sm font-semibold uppercase tracking-wider text-right" data-i18n="bud_col2">Estimated Cost</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-earth-100">
+                        <tr class="hover:bg-earth-50 transition">
+                            <td class="px-6 py-4 font-medium"><span data-i18n="bud_row1">Accommodation</span> <span class="text-earth-500 text-sm" data-i18n="bud_row1_sub">(4 nights: riad + guesthouse)</span></td>
+                            <td class="px-6 py-4 text-right font-semibold text-earth-700">€140 – €180</td>
+                        </tr>
+                        <tr class="hover:bg-earth-50 transition">
+                            <td class="px-6 py-4 font-medium"><span data-i18n="bud_row2">Local transport & driver</span> <span class="text-earth-500 text-sm" data-i18n="bud_row2_sub">(Atlas days)</span></td>
+                            <td class="px-6 py-4 text-right font-semibold text-earth-700">€90 – €120</td>
+                        </tr>
+                        <tr class="hover:bg-earth-50 transition">
+                            <td class="px-6 py-4 font-medium"><span data-i18n="bud_row3">Meals</span> <span class="text-earth-500 text-sm" data-i18n="bud_row3_sub">(mix of local & mid-range)</span></td>
+                            <td class="px-6 py-4 text-right font-semibold text-earth-700">€80 – €110</td>
+                        </tr>
+                        <tr class="hover:bg-earth-50 transition">
+                            <td class="px-6 py-4 font-medium" data-i18n="bud_row4">Activities & guide fees</td>
+                            <td class="px-6 py-4 text-right font-semibold text-earth-700">€40 – €60</td>
+                        </tr>
+                        <tr class="hover:bg-earth-50 transition">
+                            <td class="px-6 py-4 font-medium"><span data-i18n="bud_row5">Shopping & extras</span> <span class="text-earth-500 text-sm" data-i18n="bud_row5_sub">(flexible)</span></td>
+                            <td class="px-6 py-4 text-right font-semibold text-earth-700">€50+</td>
+                        </tr>
+                        <tr class="bg-earth-100">
+                            <td class="px-6 py-5 font-serif font-bold text-lg" data-i18n="bud_total">Estimated total per person</td>
+                            <td class="px-6 py-5 text-right font-serif font-bold text-xl text-earth-700">≈ €420 – €520</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- TRAVEL TIPS & PHRASES SECTION -->
+    <section id="tips" class="py-24 bg-white">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-16" data-aos="fade-up">
+                <span class="text-earth-500 font-semibold tracking-[0.2em] uppercase text-xs mb-3 block" data-i18n="tips_subtitle">Practical Info</span>
+                <h2 class="font-serif text-4xl md:text-5xl font-bold text-earth-900" data-i18n="tips_title">Good to Know</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-24">
+                <div class="flex gap-6 p-6 rounded-2xl bg-earth-50 border border-earth-100" data-aos="fade-right">
+                    <div class="w-12 h-12 bg-earth-600 text-white rounded-xl flex items-center justify-center flex-shrink-0 text-xl"><i class="fa-solid fa-shirt"></i></div>
+                    <div>
+                        <h4 class="font-serif font-bold text-xl mb-2" data-i18n="tips_1_title">Dress Code</h4>
+                        <p class="text-earth-600 text-sm leading-relaxed" data-i18n="tips_1_desc">Casual is fine, but shoulders/knees covered is respectful in the medina and villages.</p>
+                    </div>
+                </div>
+                <div class="flex gap-6 p-6 rounded-2xl bg-earth-50 border border-earth-100" data-aos="fade-left">
+                    <div class="w-12 h-12 bg-earth-600 text-white rounded-xl flex items-center justify-center flex-shrink-0 text-xl"><i class="fa-solid fa-shield-halved"></i></div>
+                    <div>
+                        <h4 class="font-serif font-bold text-xl mb-2" data-i18n="tips_2_title">Safety</h4>
+                        <p class="text-earth-600 text-sm leading-relaxed" data-i18n="tips_2_desc">Morocco is generally welcoming to travelers; stick to agreed prices and trusted guides.</p>
+                    </div>
+                </div>
+                <div class="flex gap-6 p-6 rounded-2xl bg-earth-50 border border-earth-100" data-aos="fade-right">
+                    <div class="w-12 h-12 bg-earth-600 text-white rounded-xl flex items-center justify-center flex-shrink-0 text-xl"><i class="fa-solid fa-money-bill-wave"></i></div>
+                    <div>
+                        <h4 class="font-serif font-bold text-xl mb-2" data-i18n="tips_3_title">Money</h4>
+                        <p class="text-earth-600 text-sm leading-relaxed" data-i18n="tips_3_desc">Cash (dirhams) is essential outside big hotels – many riads and mountain guesthouses don't take cards.</p>
+                    </div>
+                </div>
+                <div class="flex gap-6 p-6 rounded-2xl bg-earth-50 border border-earth-100" data-aos="fade-left">
+                    <div class="w-12 h-12 bg-earth-600 text-white rounded-xl flex items-center justify-center flex-shrink-0 text-xl"><i class="fa-solid fa-wifi"></i></div>
+                    <div>
+                        <h4 class="font-serif font-bold text-xl mb-2" data-i18n="tips_4_title">Connectivity</h4>
+                        <p class="text-earth-600 text-sm leading-relaxed" data-i18n="tips_4_desc">A local SIM card (~5€) covers you almost everywhere, including most mountain villages.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- USEFUL PHRASES -->
+            <div class="text-center mb-12" data-aos="fade-up">
+                <span class="text-earth-500 font-semibold tracking-[0.2em] uppercase text-xs mb-3 block" data-i18n="phr_subtitle">Language</span>
+                <h2 class="font-serif text-3xl md:text-4xl font-bold text-earth-900" data-i18n="phr_title">Useful Phrases</h2>
+            </div>
+            <div class="overflow-hidden rounded-2xl border border-earth-200" data-aos="fade-up">
+                <table class="w-full text-left">
+                    <thead class="bg-earth-100">
+                        <tr>
+                            <th class="px-6 py-4 text-sm font-semibold text-earth-800 uppercase tracking-wider" data-i18n="phr_col1">English</th>
+                            <th class="px-6 py-4 text-sm font-semibold text-earth-800 uppercase tracking-wider" data-i18n="phr_col2">Darija</th>
+                            <th class="px-6 py-4 text-sm font-semibold text-earth-800 uppercase tracking-wider hidden md:table-cell" data-i18n="phr_col3">Note</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-earth-100 bg-white">
+                        <tr class="hover:bg-earth-50 transition">
+                            <td class="px-6 py-4 font-medium" data-i18n="phr_1">Hello</td>
+                            <td class="px-6 py-4 text-earth-600 font-serif text-lg">Salam</td>
+                            <td class="px-6 py-4 text-sm text-earth-500 hidden md:table-cell" data-i18n="phr_1_note">Universal greeting</td>
+                        </tr>
+                        <tr class="hover:bg-earth-50 transition">
+                            <td class="px-6 py-4 font-medium" data-i18n="phr_2">Thank you</td>
+                            <td class="px-6 py-4 text-earth-600 font-serif text-lg">Shukran</td>
+                            <td class="px-6 py-4 text-sm text-earth-500 hidden md:table-cell" data-i18n="phr_2_note">Always appreciated</td>
+                        </tr>
+                        <tr class="hover:bg-earth-50 transition">
+                            <td class="px-6 py-4 font-medium" data-i18n="phr_3">How much?</td>
+                            <td class="px-6 py-4 text-earth-600 font-serif text-lg">Bshhal?</td>
+                            <td class="px-6 py-4 text-sm text-earth-500 hidden md:table-cell" data-i18n="phr_3_note">Essential for souks</td>
+                        </tr>
+                        <tr class="hover:bg-earth-50 transition">
+                            <td class="px-6 py-4 font-medium" data-i18n="phr_4">No, thank you</td>
+                            <td class="px-6 py-4 text-earth-600 font-serif text-lg">La, shukran</td>
+                            <td class="px-6 py-4 text-sm text-earth-500 hidden md:table-cell" data-i18n="phr_4_note">Polite refusal</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA / CONTACT SECTION -->
+    <section id="contact" class="py-24 bg-earth-900 text-white">
+        <div class="max-w-4xl mx-auto px-6 text-center" data-aos="fade-up">
+            <h2 class="font-serif text-4xl md:text-5xl font-bold mb-6" data-i18n="cta_title">Ready to plan your Morocco trip?</h2>
+            <p class="text-earth-300 text-lg mb-10 max-w-2xl mx-auto" data-i18n="cta_desc">Fill out a quick form and get your first sample plan for free.</p>
+            
+            <div class="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+                <a href="https://forms.gle/G3oHUm6NoPRtan1dA" target="_blank" class="bg-earth-500 hover:bg-earth-600 text-white px-10 py-4 rounded-full font-bold transition shadow-xl shadow-earth-500/30 flex items-center justify-center gap-3 text-lg">
+                    <i class="fa-solid fa-paper-plane"></i> <span data-i18n="cta_btn1">Request your plan</span>
+                </a>
+            </div>
+
+            <div class="flex justify-center gap-8 text-earth-400">
+                <a href="https://instagram.com/kasbahtrails" target="_blank" class="hover:text-white transition flex items-center gap-2"><i class="fa-brands fa-instagram text-xl"></i> <span class="hidden sm:inline" data-i18n="contact_instagram">Instagram</span></a>
+               <a href="https://mail.google.com/mail/?view=cm&fs=1&to=kasbahtrails@gmail.com" target="_blank" class="hover:text-white transition flex items-center gap-2"><i class="fa-solid fa-envelope text-xl"></i> <span class="hidden sm:inline" data-i18n="contact_email">Email</span></a>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="bg-[#3a1c12] text-earth-500 py-12">
+        <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="flex items-center gap-3">
+                <img src="logo.png" alt="Kasbah Trails Logo" class="w-12 h-12 rounded-full object-cover shadow-sm">
+                <span class="font-serif font-bold text-earth-200 tracking-wide">KASBAH TRAILS</span>
+            </div>
+            <p class="text-sm">© 2026 Kasbah Trails. <span data-i18n="footer_rights">All rights reserved.</span></p>
+            <div class="flex gap-4">
+                <a href="https://instagram.com/kasbahtrails" target="_blank" class="hover:text-white transition"><i class="fa-brands fa-instagram text-xl"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- MOBILE STICKY BUTTON -->
+    <div class="fixed bottom-0 left-0 w-full bg-white border-t border-earth-200 p-3 z-50 lg:hidden shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+        <a href="https://forms.gle/G3oHUm6NoPRtan1dA" target="_blank" class="block w-full bg-earth-600 text-white text-center py-3 rounded-full font-semibold shadow-md" data-i18n="sticky_btn">
+            Get my free sample plan
+        </a>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.locatecontrol/dist/L.Control.Locate.min.js"></script>
+
+    <script>
+        /* =====================================================
+           1. EMBEDDED TRANSLATIONS (No external files needed!)
+        ===================================================== */
+        const translations = {
+            en: {
+                nav_dest: "Destinations", nav_how: "How we work", nav_about: "About Us", nav_sample: "Sample Plan", nav_tips: "Good to Know", nav_contact: "Contact",
+                hero_badge: "Morocco · Planned around you", hero_title: "Beyond the Souks", 
+                hero_desc: "Most guides send you from Marrakech straight to the dunes — and skip everything in between. We build custom Morocco trips around your dates, budget and interests: cities, mountains, villages and coast.", 
+                hero_btn1: "Get my free sample plan", hero_btn2: "See how it works",
+                dest_subtitle: "Where to?", dest_title: "Explore Morocco", dest_desc: "Every region has its own character. Here are a few places we love — but we can plan your trip anywhere in Morocco.",
+                dest_1: "Souks, palaces and Jemaa el-Fna", dest_2: "The oldest medina and its crafts", dest_3: "The blue city", dest_4: "Dunes and desert camps", dest_5: "Berber villages and valleys", dest_more: "…and anywhere else in Morocco you want to go.",
+                how_subtitle: "Process", how_title: "How we work", how_1_title: "Fill out a quick form", how_1_desc: "Your dates, budget & interests", how_2_title: "We build your route", how_2_desc: "Real local knowledge + careful planning", how_3_title: "Get your custom plan", how_3_desc: "A full PDF: itinerary, budget, tips", how_get_title: "What you get:", how_get_1: "Daily itinerary", how_get_2: "Realistic budget", how_get_3: "Practical & cultural tips", how_get_4: "Useful Darija phrases", how_note: "\"We plan your trip before you travel — you book and travel independently. Your first sample plan is free.\"",
+                about_subtitle: "Our Story", about_title: "About Kasbah Trails", about_p1: "Rooted in a small village in the Atlas Mountains, Kasbah Trails was born from a simple belief: the best trips are the ones you don't find in standard guidebooks.", about_p2: "As a local, I plan trips the way I would for a friend visiting me — with honest budgets, real local knowledge, and no filler.", about_p3: "I do the planning. You book, and you travel on your own terms.",
+                sample_subtitle: "Example", sample_title: "Sample plan: 5 days from Marrakech to the Atlas villages", sample_desc: "This is just one example route. Every region of Morocco has its own character — your plan is built around the places you choose.", sample_details: "Sample plan details",
+                ov_style_title: "Travel Style", ov_style_desc: "Nature, photography, culture – relaxed pace", ov_budget_title: "Budget Level", ov_budget_desc: "Mid-range (~700€ / person, excl. flights)", ov_travelers_title: "Travelers", ov_travelers_desc: "2 people, solo-friendly route", ov_season_title: "Best Season", ov_season_desc: "March–May or September–November",
+                itin_title: "Day by Day Itinerary", day_1: "Day 1", day_2: "Day 2", day_3: "Day 3", day_4: "Day 4", day_5: "Day 5", time_morning: "Morning", time_afternoon: "Afternoon", time_evening: "Evening", time_midday: "Midday", tip_label: "TIP:",
+                map_title: "Your Route on the Map", map_search_placeholder: "Search (e.g. Rabat...)", map_searching: "Searching...", map_loading: "Fetching details for", map_fallback_desc: "Discover {place}. Zoom in on the map to see nearby hotels, restaurants, and exact location details.", map_tag_searched: "Searched Place", map_tag_location: "Location", layer_streets: "Streets", layer_satellite: "Satellite", layer_terrain: "Terrain",
+                loc_marrakech_title: "Marrakech", loc_marrakech_desc: "The vibrant heart of Morocco. Explore the bustling souks, the majestic Jemaa el-Fna square, and the beautiful palaces hidden in the medina.", loc_imlil_title: "High Atlas (Imlil)", loc_imlil_desc: "A breathtaking mountain village. The perfect base for exploring the Atlas, staying in a Berber guesthouse, and enjoying the fresh air.", loc_ourika_title: "Ourika Valley", loc_ourika_desc: "Lush green valleys and seasonal waterfalls. A great spot for an easy walk with a local guide and lunch by the river.",
+                tag_souks: "Souks", tag_culture: "Culture", tag_food: "Food", tag_mountains: "Mountains", tag_berber: "Berber Life", tag_hiking: "Hiking", tag_nature: "Nature", tag_waterfalls: "Waterfalls", tag_relaxation: "Relaxation",
+                bud_title: "Budget for this sample", bud_desc: "No hidden fees, no inflated prices – here's what a trip like this actually costs per person.", bud_col1: "Category", bud_col2: "Estimated Cost", bud_row1: "Accommodation", bud_row1_sub: "(4 nights: riad + guesthouse)", bud_row2: "Local transport & driver", bud_row2_sub: "(Atlas days)", bud_row3: "Meals", bud_row3_sub: "(mix of local & mid-range)", bud_row4: "Activities & guide fees", bud_row5: "Shopping & extras", bud_row5_sub: "(flexible)", bud_total: "Estimated total per person",
+                tips_subtitle: "Practical Info", tips_title: "Good to Know", tips_1_title: "Dress Code", tips_1_desc: "Casual is fine, but shoulders/knees covered is respectful in the medina and villages.", tips_2_title: "Safety", tips_2_desc: "Morocco is generally welcoming to travelers; stick to agreed prices and trusted guides.", tips_3_title: "Money", tips_3_desc: "Cash (dirhams) is essential outside big hotels – many riads and mountain guesthouses don't take cards.", tips_4_title: "Connectivity", tips_4_desc: "A local SIM card (~5€) covers you almost everywhere, including most mountain villages.",
+                phr_subtitle: "Language", phr_title: "Useful Phrases", phr_col1: "English", phr_col2: "Darija", phr_col3: "Note", phr_1: "Hello", phr_1_note: "Universal greeting", phr_2: "Thank you", phr_2_note: "Always appreciated", phr_3: "How much?", phr_3_note: "Essential for souks", phr_4: "No, thank you", phr_4_note: "Polite refusal",
+                cta_title: "Ready to plan your Morocco trip?", cta_desc: "Fill out a quick form and get your first sample plan for free.", cta_btn1: "Request your plan", sticky_btn: "Get my free sample plan", footer_rights: "All rights reserved.", contact_instagram: "Instagram", contact_email: "Email"
+            },
+            fr: {
+                nav_dest: "Destinations", nav_how: "Notre méthode", nav_about: "À propos", nav_sample: "Exemple", nav_tips: "Infos Pratiques", nav_contact: "Contact",
+                hero_badge: "Maroc · Conçu pour vous", hero_title: "Au-delà des Souks", 
+                hero_desc: "La plupart des guides vous emmènent de Marrakech directement aux dunes — en ignorant tout le reste. Nous créons des voyages sur mesure autour de vos dates, budget et intérêts : villes, montagnes, villages et côte.", 
+                hero_btn1: "Obtenir mon plan gratuit", hero_btn2: "Voir comment ça marche",
+                dest_subtitle: "Où aller ?", dest_title: "Explorez le Maroc", dest_desc: "Chaque région a son propre caractère. Voici quelques lieux que nous aimons — mais nous pouvons planifier votre voyage n'importe où au Maroc.",
+                dest_1: "Souks, palais et Jemaa el-Fna", dest_2: "La plus ancienne médina et son artisanat", dest_3: "La ville bleue", dest_4: "Dunes et camps du désert", dest_5: "Villages berbères et vallées", dest_more: "…et partout ailleurs au Maroc où vous voulez aller.",
+                how_subtitle: "Processus", how_title: "Notre méthode", how_1_title: "Remplissez un formulaire", how_1_desc: "Vos dates, budget et intérêts", how_2_title: "Nous créons votre itinéraire", how_2_desc: "Connaissance locale réelle + planification", how_3_title: "Recevez votre plan", how_3_desc: "Un PDF complet : itinéraire, budget, conseils", how_get_title: "Ce que vous obtenez :", how_get_1: "Itinéraire jour par jour", how_get_2: "Budget réaliste", how_get_3: "Conseils pratiques et culturels", how_get_4: "Phrases utiles en Darija", how_note: "\"Nous planifions votre voyage avant que vous ne voyagiez — vous réservez et voyagez de manière indépendante. Votre premier plan est gratuit.\"",
+                about_subtitle: "Notre Histoire", about_title: "À propos de Kasbah Trails", about_p1: "Enraciné dans un petit village des montagnes de l'Atlas, Kasbah Trails est né d'une conviction simple : les meilleurs voyages sont ceux que l'on ne trouve pas dans les guides standards.", about_p2: "En tant qu'habitant local, je planifie les voyages comme je le ferais pour un ami qui me rend visite — avec des budgets honnêtes, de vraies connaissances locales et sans remplissage.", about_p3: "Je fais la planification. Vous réservez et voyagez comme vous l'entendez.",
+                sample_subtitle: "Exemple", sample_title: "Exemple de plan : 5 jours de Marrakech aux villages de l'Atlas", sample_desc: "Ce n'est qu'un exemple d'itinéraire. Chaque région du Maroc a son propre caractère — votre plan est construit autour des lieux que vous choisissez.", sample_details: "Détails de l'exemple",
+                ov_style_title: "Style de Voyage", ov_style_desc: "Nature, photographie, culture – rythme détendu", ov_budget_title: "Budget", ov_budget_desc: "Milieu de gamme (~700€ / pers, hors vols)", ov_travelers_title: "Voyageurs", ov_travelers_desc: "2 personnes, adapté aux solo", ov_season_title: "Meilleure Saison", ov_season_desc: "Mars–Mai ou Septembre–Novembre",
+                itin_title: "Itinéraire Jour par Jour", day_1: "Jour 1", day_2: "Jour 2", day_3: "Jour 3", day_4: "Jour 4", day_5: "Jour 5", time_morning: "Matin", time_afternoon: "Après-midi", time_evening: "Soir", time_midday: "Midi", tip_label: "CONSEIL :",
+                map_title: "Votre Itinéraire sur la Carte", map_search_placeholder: "Rechercher (ex: Rabat, Hôtel...)", map_searching: "Recherche...", map_loading: "Récupération des détails pour", map_fallback_desc: "Découvrez {place}. Zoomez sur la carte pour voir les hôtels, restaurants et détails à proximité.", map_tag_searched: "Lieu recherché", map_tag_location: "Lieu", layer_streets: "Rues", layer_satellite: "Satellite", layer_terrain: "Relief",
+                loc_marrakech_title: "Marrakech", loc_marrakech_desc: "Le cœur vibrant du Maroc. Explorez les souks animés, la majestueuse place Jemaa el-Fna et les beaux palais cachés dans la médina.", loc_imlil_title: "Haut Atlas (Imlil)", loc_imlil_desc: "Un village de montagne à couper le souffle. Le point de départ idéal pour explorer l'Atlas et séjourner dans une maison d'hôtes berbère.", loc_ourika_title: "Vallée de l'Ourika", loc_ourika_desc: "Vallées verdoyantes et cascades saisonnières. Un excellent endroit pour une promenade facile avec un guide local.",
+                tag_souks: "Souks", tag_culture: "Culture", tag_food: "Nourriture", tag_mountains: "Montagnes", tag_berber: "Vie Berbère", tag_hiking: "Randonnée", tag_nature: "Nature", tag_waterfalls: "Cascades", tag_relaxation: "Détente",
+                bud_title: "Budget pour cet exemple", bud_desc: "Pas de frais cachés – voici ce que coûte réellement ce voyage par personne.", bud_col1: "Catégorie", bud_col2: "Coût Estimé", bud_row1: "Hébergement", bud_row1_sub: "(4 nuits : riad + maison d'hôtes)", bud_row2: "Transport local & chauffeur", bud_row2_sub: "(Jours dans l'Atlas)", bud_row3: "Repas", bud_row3_sub: "(mélange local & milieu de gamme)", bud_row4: "Activités & guides", bud_row5: "Achats & extras", bud_row5_sub: "(flexible)", bud_total: "Total estimé par personne",
+                tips_subtitle: "Infos Pratiques", tips_title: "Bon à Savoir", tips_1_title: "Code Vestimentaire", tips_1_desc: "Décontracté, mais épaules/genoux couverts est respectueux.", tips_2_title: "Sécurité", tips_2_desc: "Le Maroc est généralement accueillant; respectez les prix convenus et les guides de confiance.", tips_3_title: "Argent", tips_3_desc: "L'argent liquide (dirhams) est essentiel hors des grands hôtels.", tips_4_title: "Connectivité", tips_4_desc: "Une carte SIM locale (~5€) couvre presque tout.",
+                phr_subtitle: "Langue", phr_title: "Phrases Utiles", phr_col1: "Français", phr_col2: "Darija", phr_col3: "Note", phr_1: "Bonjour", phr_1_note: "Salutation universelle", phr_2: "Merci", phr_2_note: "Toujours apprécié", phr_3: "Combien ?", phr_3_note: "Essentiel pour les souks", phr_4: "Non, merci", phr_4_note: "Refus poli",
+                cta_title: "Prêt à planifier votre voyage au Maroc ?", cta_desc: "Remplissez un formulaire rapide et obtenez votre premier plan gratuitement.", cta_btn1: "Demander votre plan", sticky_btn: "Obtenir mon plan gratuit", footer_rights: "Tous droits réservés.", contact_instagram: "Instagram", contact_email: "Email"
+            },
+            es: {
+                nav_dest: "Destinos", nav_how: "Cómo trabajamos", nav_about: "Sobre nosotros", nav_sample: "Ejemplo", nav_tips: "Información", nav_contact: "Contacto",
+                hero_badge: "Marruecos · Planificado para ti", hero_title: "Más Allá de los Zocos", 
+                hero_desc: "La mayoría de las guías te llevan de Marrakech directamente a las dunas, omitiendo todo lo demás. Creamos viajes a medida por Marruecos según tus fechas, presupuesto e intereses: ciudades, montañas, pueblos y costa.", 
+                hero_btn1: "Obtener mi plan gratis", hero_btn2: "Ver cómo funciona",
+                dest_subtitle: "¿A dónde ir?", dest_title: "Explora Marruecos", dest_desc: "Cada región tiene su propio carácter. Aquí hay algunos lugares que amamos, pero podemos planificar tu viaje a cualquier lugar de Marruecos.",
+                dest_1: "Zocos, palacios y Jemaa el-Fna", dest_2: "La medina más antigua y sus artesanías", dest_3: "La ciudad azul", dest_4: "Dunas y campamentos del desierto", dest_5: "Pueblos bereberes y valles", dest_more: "…y cualquier otro lugar de Marruecos al que quieras ir.",
+                how_subtitle: "Proceso", how_title: "Cómo trabajamos", how_1_title: "Completa un formulario", how_1_desc: "Tus fechas, presupuesto e intereses", how_2_title: "Creamos tu ruta", how_2_desc: "Conocimiento local real + planificación", how_3_title: "Recibe tu plan", how_3_desc: "Un PDF completo: itinerario, presupuesto, consejos", how_get_title: "Lo que obtienes:", how_get_1: "Itinerario diario", how_get_2: "Presupuesto realista", how_get_3: "Consejos prácticos y culturales", how_get_4: "Frases útiles en Darija", how_note: "\"Planificamos tu viaje antes de que viajes — tú reservas y viajas de forma independiente. Tu primer plan de muestra es gratis.\"",
+                about_subtitle: "Nuestra Historia", about_title: "Sobre Kasbah Trails", about_p1: "Arraigado en un pequeño pueblo de las montañas del Atlas, Kasbah Trails nació de una creencia simple: los mejores viajes son los que no se encuentran en las guías estándar.", about_p2: "Como local, planifico viajes como lo haría para un amigo que me visita — con presupuestos honestos, conocimiento local real y sin relleno.", about_p3: "Yo hago la planificación. Tú reservas y viajas a tu manera.",
+                sample_subtitle: "Ejemplo", sample_title: "Plan de muestra: 5 días de Marrakech a los pueblos del Atlas", sample_desc: "Esta es solo una ruta de ejemplo. Cada región de Marruecos tiene su propio carácter — tu plan se construye alrededor de los lugares que elijas.", sample_details: "Detalles del plan",
+                ov_style_title: "Estilo de Viaje", ov_style_desc: "Naturaleza, fotografía, cultura – ritmo relajado", ov_budget_title: "Presupuesto", ov_budget_desc: "Gama media (~700€ / pers, sin vuelos)", ov_travelers_title: "Viajeros", ov_travelers_desc: "2 personas, ideal para solos", ov_season_title: "Mejor Época", ov_season_desc: "Marzo–Mayo o Septiembre–Noviembre",
+                itin_title: "Itinerario Día a Día", day_1: "Día 1", day_2: "Día 2", day_3: "Día 3", day_4: "Día 4", day_5: "Día 5", time_morning: "Mañana", time_afternoon: "Tarde", time_evening: "Noche", time_midday: "Mediodía", tip_label: "CONSEJO:",
+                map_title: "Tu Ruta en el Mapa", map_search_placeholder: "Buscar (ej. Rabat, Hotel...)", map_searching: "Buscando...", map_loading: "Obteniendo detalles para", map_fallback_desc: "Descubre {place}. Haz zoom en el mapa para ver hoteles, restaurantes y detalles exactos.", map_tag_searched: "Lugar buscado", map_tag_location: "Ubicación", layer_streets: "Calles", layer_satellite: "Satélite", layer_terrain: "Terreno",
+                loc_marrakech_title: "Marrakech", loc_marrakech_desc: "El vibrante corazón de Marruecos. Explora los zocos, la plaza Jemaa el-Fna y los hermosos palacios escondidos en la medina.", loc_imlil_title: "Alto Atlas (Imlil)", loc_imlil_desc: "Un impresionante pueblo de montaña. La base perfecta para explorar el Atlas y alojarse en una casa de huéspedes bereber.", loc_ourika_title: "Valle de Ourika", loc_ourika_desc: "Valles verdes y cascadas de temporada. Un gran lugar para un paseo fácil con un guía local.",
+                tag_souks: "Zocos", tag_culture: "Cultura", tag_food: "Comida", tag_mountains: "Montañas", tag_berber: "Vida Bereber", tag_hiking: "Senderismo", tag_nature: "Naturaleza", tag_waterfalls: "Cascadas", tag_relaxation: "Relajación",
+                bud_title: "Presupuesto para este ejemplo", bud_desc: "Sin cargos ocultos: esto es lo que realmente cuesta el viaje por persona.", bud_col1: "Categoría", bud_col2: "Costo Estimado", bud_row1: "Alojamiento", bud_row1_sub: "(4 noches: riad + casa de huéspedes)", bud_row2: "Transporte local y conductor", bud_row2_sub: "(Días en el Atlas)", bud_row3: "Comidas", bud_row3_sub: "(mezcla local y gama media)", bud_row4: "Actividades y guías", bud_row5: "Compras y extras", bud_row5_sub: "(flexible)", bud_total: "Total estimado por persona",
+                tips_subtitle: "Info Práctica", tips_title: "Bueno Saber", tips_1_title: "Vestimenta", tips_1_desc: "Informal está bien, pero cubrir hombros/rodillas es respetuoso.", tips_2_title: "Seguridad", tips_2_desc: "Marruecos es generalmente acogedor; usa guías de confianza y respeta los precios acordados.", tips_3_title: "Dinero", tips_3_desc: "El efectivo (dirhams) es esencial fuera de los grandes hoteles.", tips_4_title: "Conectividad", tips_4_desc: "Una SIM local (~5€) te cubre casi en todas partes.",
+                phr_subtitle: "Idioma", phr_title: "Frases Útiles", phr_col1: "Español", phr_col2: "Darija", phr_col3: "Nota", phr_1: "Hola", phr_1_note: "Saludo universal", phr_2: "Gracias", phr_2_note: "Siempre apreciado", phr_3: "¿Cuánto cuesta?", phr_3_note: "Esencial para regatear", phr_4: "No, gracias", phr_4_note: "Rechazo educado",
+                cta_title: "¿Listo para planificar tu viaje a Marruecos?", cta_desc: "Completa un formulario rápido y obtén tu primer plan de muestra gratis.", cta_btn1: "Solicitar tu plan", sticky_btn: "Obtener mi plan gratis", footer_rights: "Todos los derechos reservados.", contact_instagram: "Instagram", contact_email: "Correo"
+            },
+            de: {
+                nav_dest: "Reiseziele", nav_how: "So funktioniert's", nav_about: "Über uns", nav_sample: "Beispielplan", nav_tips: "Gut zu wissen", nav_contact: "Kontakt",
+                hero_badge: "Marokko · Auf dich zugeschnitten", hero_title: "Jenseits der Souks", 
+                hero_desc: "Die meisten Reiseführer schicken dich von Marrakesch direkt in die Dünen – und lassen alles dazwischen aus. Wir planen maßgeschneiderte Marokko-Reisen nach deinen Daten, deinem Budget und deinen Interessen: Städte, Berge, Dörfer und Küste.", 
+                hero_btn1: "Kostenlosen Beispielplan erhalten", hero_btn2: "So funktioniert's",
+                dest_subtitle: "Wohin?", dest_title: "Entdecke Marokko", dest_desc: "Jede Region hat ihren eigenen Charakter. Hier sind einige Orte, die wir lieben – aber wir können deine Reise überall in Marokko planen.",
+                dest_1: "Souks, Paläste und der Jemaa el-Fna", dest_2: "Die älteste Medina und ihr Handwerk", dest_3: "Die blaue Stadt", dest_4: "Dünen und Wüstencamps", dest_5: "Berberdörfer und Täler", dest_more: "…und überall sonst in Marokko, wo du hin möchtest.",
+                how_subtitle: "Ablauf", how_title: "So funktioniert's", how_1_title: "Formular ausfüllen", how_1_desc: "Deine Daten, Budget & Interessen", how_2_title: "Wir erstellen deine Route", how_2_desc: "Echtes lokales Wissen + sorgfältige Planung", how_3_title: "Deinen Plan erhalten", how_3_desc: "Ein komplettes PDF: Reiseroute, Budget, Tipps", how_get_title: "Das bekommst du:", how_get_1: "Tägliche Reiseroute", how_get_2: "Realistisches Budget", how_get_3: "Praktische & kulturelle Tipps", how_get_4: "Nützliche Darija-Sätze", how_note: "\"Wir planen deine Reise, bevor du reist – du buchst und reist unabhängig. Dein erster Beispielplan ist kostenlos.\"",
+                about_subtitle: "Unsere Geschichte", about_title: "Über Kasbah Trails", about_p1: "Verwurzelt in einem kleinen Dorf im Atlasgebirge, entstand Kasbah Trails aus einer einfachen Überzeugung: Die besten Reisen sind die, die man nicht in Standard-Reiseführern findet.", about_p2: "Als Einheimischer plane ich Reisen so, wie ich sie für einen Freund planen würde, der mich besucht – mit ehrlichen Budgets, echtem lokalen Wissen und ohne Füllmaterial.", about_p3: "Ich übernehme die Planung. Du buchst und reist zu deinen eigenen Bedingungen.",
+                sample_subtitle: "Beispiel", sample_title: "Beispielplan: 5 Tage von Marrakesch zu den Atlasdörfern", sample_desc: "Dies ist nur eine Beispielroute. Jede Region Marokkos hat ihren eigenen Charakter – dein Plan wird um die Orte herum aufgebaut, die du auswählst.", sample_details: "Details zum Beispielplan",
+                ov_style_title: "Reisestil", ov_style_desc: "Natur, Fotografie, Kultur – entspanntes Tempo", ov_budget_title: "Budget-Level", ov_budget_desc: "Mittelklasse (~700€ / Person, ohne Flüge)", ov_travelers_title: "Reisende", ov_travelers_desc: "2 Personen, Solo-freundliche Route", ov_season_title: "Beste Reisezeit", ov_season_desc: "März–Mai oder September–November",
+                itin_title: "Tagesroute", day_1: "Tag 1", day_2: "Tag 2", day_3: "Tag 3", day_4: "Tag 4", day_5: "Tag 5", time_morning: "Morgen", time_afternoon: "Nachmittag", time_evening: "Abend", time_midday: "Mittag", tip_label: "TIPP:",
+                map_title: "Deine Route auf der Karte", map_search_placeholder: "Suchen (z.B. Rabat, Hotel...)", map_searching: "Suche...", map_loading: "Details abrufen für", map_fallback_desc: "Entdecke {place}. Zoome in die Karte, um Hotels, Restaurants und genaue Standortdetails zu sehen.", map_tag_searched: "Gesuchter Ort", map_tag_location: "Standort", layer_streets: "Straßen", layer_satellite: "Satellit", layer_terrain: "Gelände",
+                loc_marrakech_title: "Marrakesch", loc_marrakech_desc: "Das pulsierende Herz Marokkos. Erkunde die belebten Souks, den majestätischen Platz Jemaa el-Fna und die wunderschönen Paläste, die in der Medina versteckt sind.", loc_imlil_title: "Hoher Atlas (Imlil)", loc_imlil_desc: "Ein atemberaubendes Bergdorf. Der perfekte Ausgangspunkt, um den Atlas zu erkunden, in einer Berber-Gästewohnung zu übernachten und die frische Luft zu genießen.", loc_ourika_title: "Ourika-Tal", loc_ourika_desc: "Üppig grüne Täler und saisonale Wasserfälle. Ein großartiger Ort für einen leichten Spaziergang mit einem lokalen Führer und Mittagessen am Fluss.",
+                tag_souks: "Souks", tag_culture: "Kultur", tag_food: "Essen", tag_mountains: "Berge", tag_berber: "Berberleben", tag_hiking: "Wandern", tag_nature: "Natur", tag_waterfalls: "Wasserfälle", tag_relaxation: "Entspannung",
+                bud_title: "Budget für dieses Beispiel", bud_desc: "Keine versteckten Gebühren, keine überhöhten Preise – hier erfährst du, was eine solche Reise pro Person tatsächlich kostet.", bud_col1: "Kategorie", bud_col2: "Geschätzte Kosten", bud_row1: "Unterkunft", bud_row1_sub: "(4 Nächte: Riad + Gästehaus)", bud_row2: "Lokaler Transport & Fahrer", bud_row2_sub: "(Atlas-Tage)", bud_row3: "Mahlzeiten", bud_row3_sub: "(Mischung aus lokal & Mittelklasse)", bud_row4: "Aktivitäten & Führungsgebühren", bud_row5: "Einkaufen & Extras", bud_row5_sub: "(flexibel)", bud_total: "Geschätzte Gesamtkosten pro Person",
+                tips_subtitle: "Praktische Infos", tips_title: "Gut zu wissen", tips_1_title: "Kleiderordnung", tips_1_desc: "Freizeitkleidung ist in Ordnung, aber bedeckte Schultern/Knie sind in der Medina und in den Dörfern respektvoll.", tips_2_title: "Sicherheit", tips_2_desc: "Marokko ist gegenüber Reisenden im Allgemeinen gastfreundlich; halte dich an vereinbarte Preise und vertrauenswürdige Führer.", tips_3_title: "Geld", tips_3_desc: "Bargeld (Dirham) ist außerhalb großer Hotels unerlässlich – viele Riads und Berggästehäuser akzeptieren keine Karten.", tips_4_title: "Konnektivität", tips_4_desc: "Eine lokale SIM-Karte (~5€) deckt fast überall ab, auch in den meisten Bergdörfern.",
+                phr_subtitle: "Sprache", phr_title: "Nützliche Sätze", phr_col1: "Deutsch", phr_col2: "Darija", phr_col3: "Hinweis", phr_1: "Hallo", phr_1_note: "Universelle Begrüßung", phr_2: "Danke", phr_2_note: "Immer geschätzt", phr_3: "Wie viel?", phr_3_note: "Unverzichtbar für Souks", phr_4: "Nein, danke", phr_4_note: "Höfliche Ablehnung",
+                cta_title: "Bereit, deine Marokko-Reise zu planen?", cta_desc: "Fülle ein kurzes Formular aus und erhalte deinen ersten Beispielplan kostenlos.", cta_btn1: "Deinen Plan anfordern", sticky_btn: "Kostenlosen Beispielplan erhalten", footer_rights: "Alle Rechte vorbehalten.", contact_instagram: "Instagram", contact_email: "E-Mail"
+            },
+            it: {
+                nav_dest: "Destinazioni", nav_how: "Come lavoriamo", nav_about: "Chi siamo", nav_sample: "Piano di esempio", nav_tips: "Da sapere", nav_contact: "Contatto",
+                hero_badge: "Marocco · Pianificato per te", hero_title: "Oltre i Souk", 
+                hero_desc: "La maggior parte delle guide ti porta da Marrakech direttamente alle dune — saltando tutto ciò che c'è in mezzo. Creiamo viaggi su misura in Marocco in base alle tue date, budget e interessi: città, montagne, villaggi e costa.", 
+                hero_btn1: "Ottieni il mio piano di esempio gratuito", hero_btn2: "Scopri come funziona",
+                dest_subtitle: "Dove andare?", dest_title: "Esplora il Marocco", dest_desc: "Ogni regione ha il suo carattere. Ecco alcuni luoghi che amiamo — ma possiamo pianificare il tuo viaggio ovunque in Marocco.",
+                dest_1: "Souk, palazzi e Jemaa el-Fna", dest_2: "La medina più antica e i suoi artigiani", dest_3: "La città blu", dest_4: "Dune e campi nel deserto", dest_5: "Villaggi berberi e valli", dest_more: "…e ovunque altro in Marocco tu voglia andare.",
+                how_subtitle: "Processo", how_title: "Come lavoriamo", how_1_title: "Compila un breve modulo", how_1_desc: "Le tue date, budget e interessi", how_2_title: "Creiamo il tuo itinerario", how_2_desc: "Vera conoscenza locale + pianificazione attenta", how_3_title: "Ricevi il tuo piano", how_3_desc: "Un PDF completo: itinerario, budget, consigli", how_get_title: "Cosa ottieni:", how_get_1: "Itinerario giornaliero", how_get_2: "Budget realistico", how_get_3: "Consigli pratici e culturali", how_get_4: "Frasi utili in Darija", how_note: "\"Pianifichiamo il tuo viaggio prima che tu parta — tu prenoti e viaggi in modo indipendente. Il tuo primo piano di esempio è gratuito.\"",
+                about_subtitle: "La Nostra Storia", about_title: "Chi è Kasbah Trails", about_p1: "Radicato in un piccolo villaggio sulle montagne dell'Atlante, Kasbah Trails è nato da una semplice convinzione: i viaggi migliori sono quelli che non trovi nelle guide standard.", about_p2: "Come locale, pianifico i viaggi come farei per un amico che viene a trovarmi — con budget onesti, vera conoscenza locale e senza riempitivi.", about_p3: "Io faccio la pianificazione. Tu prenoti e viaggi alle tue condizioni.",
+                sample_subtitle: "Esempio", sample_title: "Piano di esempio: 5 giorni da Marrakech ai villaggi dell'Atlante", sample_desc: "Questo è solo un esempio di itinerario. Ogni regione del Marocco ha il suo carattere — il tuo piano è costruito intorno ai luoghi che scegli.", sample_details: "Dettagli del piano di esempio",
+                ov_style_title: "Stile di Viaggio", ov_style_desc: "Natura, fotografia, cultura – ritmo rilassato", ov_budget_title: "Livello di Budget", ov_budget_desc: "Fascia media (~700€ / persona, escluse le spese aeree)", ov_travelers_title: "Viaggiatori", ov_travelers_desc: "2 persone, itinerario adatto ai single", ov_season_title: "Periodo Migliore", ov_season_desc: "Marzo–Maggio o Settembre–Novembre",
+                itin_title: "Itinerario Giorno per Giorno", day_1: "Giorno 1", day_2: "Giorno 2", day_3: "Giorno 3", day_4: "Giorno 4", day_5: "Giorno 5", time_morning: "Mattina", time_afternoon: "Pomeriggio", time_evening: "Sera", time_midday: "Mezzogiorno", tip_label: "CONSIGLIO:",
+                map_title: "La Tua Rotta sulla Mappa", map_search_placeholder: "Cerca (es. Rabat, Hotel...)", map_searching: "Ricerca in corso...", map_loading: "Recupero dettagli per", map_fallback_desc: "Scopri {place}. Ingrandisci la mappa per vedere hotel, ristoranti e dettagli esatti della posizione.", map_tag_searched: "Luogo cercato", map_tag_location: "Posizione", layer_streets: "Strade", layer_satellite: "Satellite", layer_terrain: "Terreno",
+                loc_marrakech_title: "Marrakech", loc_marrakech_desc: "Il cuore vibrante del Marocco. Esplora i vivaci souk, la maestosa piazza Jemaa el-Fna e i bellissimi palazzi nascosti nella medina.", loc_imlil_title: "Alto Atlante (Imlil)", loc_imlil_desc: "Un villaggio di montagna mozzafiato. La base perfetta per esplorare l'Atlante, soggiornare in una guesthouse berbera e godersi l'aria fresca.", loc_ourika_title: "Valle di Ourika", loc_ourika_desc: "Verdi valli lussureggianti e cascate stagionali. Un ottimo posto per una passeggiata facile con una guida locale e un pranzo al fiume.",
+                tag_souks: "Souk", tag_culture: "Cultura", tag_food: "Cibo", tag_mountains: "Montagne", tag_berber: "Vita Berbera", tag_hiking: "Escursionismo", tag_nature: "Natura", tag_waterfalls: "Cascate", tag_relaxation: "Relax",
+                bud_title: "Budget per questo esempio", bud_desc: "Nessun costo nascosto, nessun prezzo gonfiato – ecco quanto costa effettivamente un viaggio come questo a persona.", bud_col1: "Categoria", bud_col2: "Costo Stimato", bud_row1: "Alloggio", bud_row1_sub: "(4 notti: riad + guesthouse)", bud_row2: "Trasporto locale e autista", bud_row2_sub: "(Giorni sull'Atlante)", bud_row3: "Pasti", bud_row3_sub: "(mix di locale e fascia media)", bud_row4: "Attività e guide", bud_row5: "Shopping ed extra", bud_row5_sub: "(flessibile)", bud_total: "Totale stimato a persona",
+                tips_subtitle: "Informazioni Pratiche", tips_title: "Da Sapere", tips_1_title: "Codice di Abbigliamento", tips_1_desc: "L'abbigliamento casual va bene, ma coprire spalle e ginocchia è rispettoso nella medina e nei villaggi.", tips_2_title: "Sicurezza", tips_2_desc: "Il Marocco è generalmente accogliente verso i viaggiatori; attieniti ai prezzi concordati e a guide affidabili.", tips_3_title: "Denaro", tips_3_desc: "Il contante (dirham) è essenziale al di fuori dei grandi hotel – molti riad e guesthouse di montagna non accettano carte.", tips_4_title: "Connettività", tips_4_desc: "Una SIM locale (~5€) ti copre quasi ovunque, inclusi la maggior parte dei villaggi di montagna.",
+                phr_subtitle: "Lingua", phr_title: "Frasi Utili", phr_col1: "Italiano", phr_col2: "Darija", phr_col3: "Nota", phr_1: "Ciao", phr_1_note: "Saluto universale", phr_2: "Grazie", phr_2_note: "Sempre apprezzato", phr_3: "Quanto costa?", phr_3_note: "Essenziale per i souk", phr_4: "No, grazie", phr_4_note: "Rifiuto educato",
+                cta_title: "Pronto a pianificare il tuo viaggio in Marocco?", cta_desc: "Compila un breve modulo e ottieni il tuo primo piano di esempio gratuitamente.", cta_btn1: "Richiedi il tuo piano", sticky_btn: "Ottieni il mio piano di esempio gratuito", footer_rights: "Tutti i diritti riservati.", contact_instagram: "Instagram", contact_email: "Email"
+            }
+        };
+
+        const itineraryData = {
+            en: {
+                1: { subtitle: "Arrival & the Medina of Marrakech", items: [
+                    { timeKey: "time_morning", title: "Airport pickup & check-in", desc: "Settle into a riad in the medina – quieter and more authentic.", icon: "fa-suitcase-rolling", img: "DAY1-1.jpg" },
+                    { timeKey: "time_afternoon", title: "Jemaa el-Fna & the souks", desc: "Walk the square as it wakes up, then get gently lost in the souks.", tip: "Agree on prices before you buy.", icon: "fa-mosque", img: "DAY1-2.jpg" },
+                    { timeKey: "time_evening", title: "Dinner at a rooftop", desc: "Enjoy traditional Moroccan cuisine with panoramic views over the bustling square below.", icon: "fa-utensils", img: "DAY1-3.jpg" }
+                ]},
+                2: { subtitle: "Gardens, Architecture & Local Life", items: [
+                    { timeKey: "time_morning", title: "Majorelle Garden & Bahia Palace", desc: "Go to Majorelle right at opening (8am).", icon: "fa-leaf", img: "DAY2-1.jpg" },
+                    { timeKey: "time_afternoon", title: "Lunch in a local neighborhood", desc: "Family-run spot in the Kasbah quarter.", icon: "fa-utensils", img: "DAY2-2.jpg" },
+                    { timeKey: "time_evening", title: "Free evening / hammam", desc: "Relax and unwind with a traditional hammam.", icon: "fa-spa", img: "DAY2-3.jpg" }
+                ]},
+                3: { subtitle: "Into the High Atlas Mountains", items: [
+                    { timeKey: "time_morning", title: "Drive to the High Atlas", desc: "About 1.5 hours from Marrakech.", icon: "fa-mountain-sun", img: "DAY3-1.jpg" },
+                    { timeKey: "time_midday", title: "Short valley walk", desc: "Easy 2-hour walk with a guide.", tip: "Bring a light scarf.", icon: "fa-person-hiking", img: "DAY3-2.jpg" },
+                    { timeKey: "time_afternoon", title: "Stay in a Berber guesthouse", desc: "Real village life, not a staged show.", icon: "fa-home", img: "DAY3-3.jpg" }
+                ]},
+                4: { subtitle: "Berber Village Life", items: [
+                    { timeKey: "time_morning", title: "Breakfast with host family", desc: "Mint tea, bread and honey.", icon: "fa-mug-hot", img: "DAY4-1.jpg" },
+                    { timeKey: "time_afternoon", title: "Walk through terraced villages", desc: "Explore waterfalls and Atlas surroundings.", icon: "fa-water", img: "DAY4-2.jpg" },
+                    { timeKey: "time_evening", title: "Drive back to Marrakech", desc: "Return for your final night.", icon: "fa-car", img: "DAY4-3.jpg" }
+                ]},
+                5: { subtitle: "Last Morning & Departure", items: [
+                    { timeKey: "time_morning", title: "Last-minute shopping", desc: "Enjoy a slow cafe morning.", icon: "fa-basket-shopping", img: "DAY5-1.jpg" },
+                    { timeKey: "time_afternoon", title: "Airport transfer", desc: "Smooth transfer for your departure.", icon: "fa-plane-departure", img: "DAY5-2.jpg" }
+                ]}
+            },
+            fr: {
+                1: { subtitle: "Arrivée & la Médina de Marrakech", items: [
+                    { timeKey: "time_morning", title: "Transfert & installation", desc: "Installez-vous dans un riad.", icon: "fa-suitcase-rolling", img: "DAY1-1.jpg" },
+                    { timeKey: "time_afternoon", title: "Jemaa el-Fna & les souks", desc: "Baladez-vous dans la place et les souks.", tip: "Négociez les prix.", icon: "fa-mosque", img: "DAY1-2.jpg" },
+                    { timeKey: "time_evening", title: "Dîner sur un toit", desc: "Savourez une cuisine marocaine traditionnelle avec vue panoramique sur la place.", icon: "fa-utensils", img: "DAY1-3.jpg" }
+                ]},
+                2: { subtitle: "Jardins, Architecture & Vie Locale", items: [
+                    { timeKey: "time_morning", title: "Jardin Majorelle & Palais Bahia", desc: "Allez-y tôt le matin.", icon: "fa-leaf", img: "DAY2-1.jpg" },
+                    { timeKey: "time_afternoon", title: "Déjeuner local", desc: "Un endroit familial dans le quartier de la Kasbah.", icon: "fa-utensils", img: "DAY2-2.jpg" },
+                    { timeKey: "time_evening", title: "Soirée libre / hammam", desc: "Détente dans un hammam traditionnel.", icon: "fa-spa", img: "DAY2-3.jpg" }
+                ]},
+                3: { subtitle: "Dans le Haut Atlas", items: [
+                    { timeKey: "time_morning", title: "Route vers le Haut Atlas", desc: "À 1h30 de Marrakech.", icon: "fa-mountain-sun", img: "DAY3-1.jpg" },
+                    { timeKey: "time_midday", title: "Petite randonnée", desc: "2 heures de marche facile.", tip: "Apportez un foulard.", icon: "fa-person-hiking", img: "DAY3-2.jpg" },
+                    { timeKey: "time_afternoon", title: "Nuit chez l'habitant", desc: "La vraie vie de village.", icon: "fa-home", img: "DAY3-3.jpg" }
+                ]},
+                4: { subtitle: "Vie de Village Berbère", items: [
+                    { timeKey: "time_morning", title: "Petit-déjeuner familial", desc: "Thé à la menthe et pain maison.", icon: "fa-mug-hot", img: "DAY4-1.jpg" },
+                    { timeKey: "time_afternoon", title: "Villages en terrasses", desc: "Explorez les cascades et l'Atlas.", icon: "fa-water", img: "DAY4-2.jpg" },
+                    { timeKey: "time_evening", title: "Retour à Marrakech", desc: "Retour en ville.", icon: "fa-car", img: "DAY4-3.jpg" }
+                ]},
+                5: { subtitle: "Dernier Matin & Départ", items: [
+                    { timeKey: "time_morning", title: "Derniers achats", desc: "Profitez d'un café matinal.", icon: "fa-basket-shopping", img: "DAY5-1.jpg" },
+                    { timeKey: "time_afternoon", title: "Transfert aéroport", desc: "Transfert fluide pour le départ.", icon: "fa-plane-departure", img: "DAY5-2.jpg" }
+                ]}
+            },
+            es: {
+                1: { subtitle: "Llegada y la Medina de Marrakech", items: [
+                    { timeKey: "time_morning", title: "Recogida e instalación", desc: "Alójate en un riad en la medina.", icon: "fa-suitcase-rolling", img: "DAY1-1.jpg" },
+                    { timeKey: "time_afternoon", title: "Jemaa el-Fna y los zocos", desc: "Pasea por la plaza y los zocos.", tip: "Acuerda los precios antes de comprar.", icon: "fa-mosque", img: "DAY1-2.jpg" },
+                    { timeKey: "time_evening", title: "Cena en una azotea", desc: "Disfruta de la cocina marroquí tradicional con vistas panorámicas a la plaza.", icon: "fa-utensils", img: "DAY1-3.jpg" }
+                ]},
+                2: { subtitle: "Jardines, Arquitectura y Vida Local", items: [
+                    { timeKey: "time_morning", title: "Jardín Majorelle y Palacio Bahia", desc: "Ve temprano para evitar multitudes.", icon: "fa-leaf", img: "DAY2-1.jpg" },
+                    { timeKey: "time_afternoon", title: "Almuerzo local", desc: "Un lugar familiar en el barrio de la Kasbah.", icon: "fa-utensils", img: "DAY2-2.jpg" },
+                    { timeKey: "time_evening", title: "Noche libre / hammam", desc: "Relájate en un hammam tradicional.", icon: "fa-spa", img: "DAY2-3.jpg" }
+                ]},
+                3: { subtitle: "Hacia el Alto Atlas", items: [
+                    { timeKey: "time_morning", title: "Conducir al Alto Atlas", desc: "A 1.5 horas de Marrakech.", icon: "fa-mountain-sun", img: "DAY3-1.jpg" },
+                    { timeKey: "time_midday", title: "Caminata corta", desc: "Caminata fácil de 2 horas con guía.", tip: "Lleva una bufanda ligera.", icon: "fa-person-hiking", img: "DAY3-2.jpg" },
+                    { timeKey: "time_afternoon", title: "Noche en casa de huéspedes", desc: "Verdadera vida de aldea.", icon: "fa-home", img: "DAY3-3.jpg" }
+                ]},
+                4: { subtitle: "Vida en la Aldea Bereber", items: [
+                    { timeKey: "time_morning", title: "Desayuno con la familia", desc: "Té con menta, pan y miel.", icon: "fa-mug-hot", img: "DAY4-1.jpg" },
+                    { timeKey: "time_afternoon", title: "Aldeas en terrazas", desc: "Explora cascadas y el Atlas.", icon: "fa-water", img: "DAY4-2.jpg" },
+                    { timeKey: "time_evening", title: "Regreso a Marrakech", desc: "Vuelve a la ciudad.", icon: "fa-car", img: "DAY4-3.jpg" }
+                ]},
+                5: { subtitle: "Última Mañana y Salida", items: [
+                    { timeKey: "time_morning", title: "Últimas compras", desc: "Disfruta de un café tranquilo.", icon: "fa-basket-shopping", img: "DAY5-1.jpg" },
+                    { timeKey: "time_afternoon", title: "Traslado al aeropuerto", desc: "Traslado fluido para tu salida.", icon: "fa-plane-departure", img: "DAY5-2.jpg" }
+                ]}
+            },
+            de: {
+                1: { subtitle: "Ankunft & die Medina von Marrakesch", items: [
+                    { timeKey: "time_morning", title: "Flughafenabholung & Check-in", desc: "Kommen Sie in einem Riad in der Medina unter – ruhiger und authentischer.", icon: "fa-suitcase-rolling", img: "DAY1-1.jpg" },
+                    { timeKey: "time_afternoon", title: "Jemaa el-Fna & die Souks", desc: "Spazieren Sie über den Platz, während er erwacht, und verlieren Sie sich dann sanft in den Souks.", tip: "Vereinbaren Sie die Preise, bevor Sie kaufen.", icon: "fa-mosque", img: "DAY1-2.jpg" },
+                    { timeKey: "time_evening", title: "Abendessen auf einem Dach", desc: "Genießen Sie traditionelle marokkanische Küche mit Panoramablick auf den belebten Platz unter Ihnen.", icon: "fa-utensils", img: "DAY1-3.jpg" }
+                ]},
+                2: { subtitle: "Gärten, Architektur & lokales Leben", items: [
+                    { timeKey: "time_morning", title: "Majorelle-Garten & Bahia-Palast", desc: "Gehen Sie direkt zur Eröffnung (8 Uhr) zum Majorelle-Garten.", icon: "fa-leaf", img: "DAY2-1.jpg" },
+                    { timeKey: "time_afternoon", title: "Mittagessen in einem lokalen Viertel", desc: "Ein familiengeführtes Lokal im Kasbah-Viertel.", icon: "fa-utensils", img: "DAY2-2.jpg" },
+                    { timeKey: "time_evening", title: "Freier Abend / Hammam", desc: "Entspannen Sie sich in einem traditionellen Hammam.", icon: "fa-spa", img: "DAY2-3.jpg" }
+                ]},
+                3: { subtitle: "In den Hohen Atlas", items: [
+                    { timeKey: "time_morning", title: "Fahrt in den Hohen Atlas", desc: "Etwa 1,5 Stunden von Marrakesch entfernt.", icon: "fa-mountain-sun", img: "DAY3-1.jpg" },
+                    { timeKey: "time_midday", title: "Kurzer Talrundgang", desc: "Leichter 2-stündiger Spaziergang mit einem Führer.", tip: "Bringen Sie einen leichten Schal mit.", icon: "fa-person-hiking", img: "DAY3-2.jpg" },
+                    { timeKey: "time_afternoon", title: "Übernachtung in einem Berber-Gästehaus", desc: "Echtes Dorfleben, keine inszenierte Show.", icon: "fa-home", img: "DAY3-3.jpg" }
+                ]},
+                4: { subtitle: "Berber-Dorfleben", items: [
+                    { timeKey: "time_morning", title: "Frühstück mit der Gastfamilie", desc: "Minztee, Brot und Honig.", icon: "fa-mug-hot", img: "DAY4-1.jpg" },
+                    { timeKey: "time_afternoon", title: "Spaziergang durch terrassierte Dörfer", desc: "Erkunden Sie Wasserfälle und die Umgebung des Atlas.", icon: "fa-water", img: "DAY4-2.jpg" },
+                    { timeKey: "time_evening", title: "Rückfahrt nach Marrakesch", desc: "Rückkehr für Ihre letzte Nacht.", icon: "fa-car", img: "DAY4-3.jpg" }
+                ]},
+                5: { subtitle: "Letzter Morgen & Abreise", items: [
+                    { timeKey: "time_morning", title: "Last-Minute-Einkäufe", desc: "Genießen Sie einen entspannten Café-Morgen.", icon: "fa-basket-shopping", img: "DAY5-1.jpg" },
+                    { timeKey: "time_afternoon", title: "Flughafentransfer", desc: "Reibungsloser Transfer für Ihre Abreise.", icon: "fa-plane-departure", img: "DAY5-2.jpg" }
+                ]}
+            },
+            it: {
+                1: { subtitle: "Arrivo e la Medina di Marrakech", items: [
+                    { timeKey: "time_morning", title: "Prelievo dall'aeroporto & check-in", desc: "Sistemati in un riad nella medina – più tranquillo e autentico.", icon: "fa-suitcase-rolling", img: "DAY1-1.jpg" },
+                    { timeKey: "time_afternoon", title: "Jemaa el-Fna & i souk", desc: "Cammina nella piazza mentre si sveglia, poi perditi dolcemente nei souk.", tip: "Concorda i prezzi prima di acquistare.", icon: "fa-mosque", img: "DAY1-2.jpg" },
+                    { timeKey: "time_evening", title: "Cena su un tetto", desc: "Goditi la cucina tradizionale marocchina con viste panoramiche sulla vivace piazza sottostante.", icon: "fa-utensils", img: "DAY1-3.jpg" }
+                ]},
+                2: { subtitle: "Giardini, Architettura & Vita Locale", items: [
+                    { timeKey: "time_morning", title: "Giardino Majorelle & Palazzo Bahia", desc: "Vai al Majorelle all'apertura (ore 8).", icon: "fa-leaf", img: "DAY2-1.jpg" },
+                    { timeKey: "time_afternoon", title: "Pranzo in un quartiere locale", desc: "Un locale a gestione familiare nel quartiere della Kasbah.", icon: "fa-utensils", img: "DAY2-2.jpg" },
+                    { timeKey: "time_evening", title: "Serata libera / hammam", desc: "Rilassati in un tradizionale hammam.", icon: "fa-spa", img: "DAY2-3.jpg" }
+                ]},
+                3: { subtitle: "Nell'Alto Atlante", items: [
+                    { timeKey: "time_morning", title: "Guida verso l'Alto Atlante", desc: "A circa 1,5 ore da Marrakech.", icon: "fa-mountain-sun", img: "DAY3-1.jpg" },
+                    { timeKey: "time_midday", title: "Breve passeggiata nella valle", desc: "Facile passeggiata di 2 ore con una guida.", tip: "Porta una sciarpa leggera.", icon: "fa-person-hiking", img: "DAY3-2.jpg" },
+                    { timeKey: "time_afternoon", title: "Soggiorno in una guesthouse berbera", desc: "Vera vita di villaggio, non uno spettacolo.", icon: "fa-home", img: "DAY3-3.jpg" }
+                ]},
+                4: { subtitle: "Vita nel Villaggio Berbero", items: [
+                    { timeKey: "time_morning", title: "Colazione con la famiglia ospitante", desc: "Tè alla menta, pane e miele.", icon: "fa-mug-hot", img: "DAY4-1.jpg" },
+                    { timeKey: "time_afternoon", title: "Passeggiata nei villaggi terrazzati", desc: "Esplora cascate e dintorni dell'Atlante.", icon: "fa-water", img: "DAY4-2.jpg" },
+                    { timeKey: "time_evening", title: "Ritorno a Marrakech", desc: "Ritorna per la tua ultima notte.", icon: "fa-car", img: "DAY4-3.jpg" }
+                ]},
+                5: { subtitle: "Ultima Mattina & Partenza", items: [
+                    { timeKey: "time_morning", title: "Shopping dell'ultimo minuto", desc: "Goditi una lenta mattinata al bar.", icon: "fa-basket-shopping", img: "DAY5-1.jpg" },
+                    { timeKey: "time_afternoon", title: "Trasferimento in aeroporto", desc: "Trasferimento fluido per la tua partenza.", icon: "fa-plane-departure", img: "DAY5-2.jpg" }
+                ]}
+            }
+        };
+
+        /* =====================================================
+           2. GLOBAL STATE & DOM
+        ===================================================== */
+        let currentLang = 'en';
+        let currentMapData = null;
+        let leafletMap = null;
+        let streetLayer, satelliteLayer, terrainLayer, layersControl = null;
+        const mapMarkers = []; 
+
+        const contentArea = document.getElementById('content-area');
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        const searchInput = document.getElementById('custom-search');
+        const suggestionsList = document.getElementById('custom-suggestions');
+
+        const locations = {
+            marrakech: { titleKey: "loc_marrakech_title", descKey: "loc_marrakech_desc", img: "DAY1-2.jpg", tags: ["tag_souks", "tag_culture", "tag_food"] },
+            imlil:     { titleKey: "loc_imlil_title",     descKey: "loc_imlil_desc",     img: "DAY3-3.jpg", tags: ["tag_mountains", "tag_berber", "tag_hiking"] },
+            ourika:    { titleKey: "loc_ourika_title",    descKey: "loc_ourika_desc",    img: "DAY4-2.jpg", tags: ["tag_nature", "tag_waterfalls", "tag_relaxation"] }
+        };
+
+        /* =====================================================
+           3. INIT ANIMATIONS
+        ===================================================== */
+        AOS.init({ duration: 800, once: true, offset: 100 });
+
+        /* =====================================================
+           4. MENU FUNCTIONS
+        ===================================================== */
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            const overlay = document.getElementById('mobile-menu-overlay');
+            
+            if (menu.classList.contains('translate-x-full')) {
+                menu.classList.remove('translate-x-full');
+                overlay.classList.remove('hidden');
+                setTimeout(() => overlay.classList.remove('opacity-0'), 10);
+                document.body.style.overflow = 'hidden';
+            } else {
+                menu.classList.add('translate-x-full');
+                overlay.classList.add('opacity-0');
+                setTimeout(() => {
+                    overlay.classList.add('hidden');
+                    document.body.style.overflow = '';
+                }, 300);
+            }
+        }
+
+        function toggleLangMenu(id) {
+            const el = document.getElementById(id);
+            if(el) el.classList.toggle('hidden');
+        }
+        const langBtn = document.getElementById('mobile-lang-btn');
+        if(langBtn) {
+            langBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                toggleLangMenu('mobile-lang-menu');
+            });
+        }
+        document.addEventListener('click', (e) => {
+            const langMenu = document.getElementById('mobile-lang-menu');
+            if(langMenu && !langMenu.contains(e.target) && e.target.id !== 'mobile-lang-btn') {
+                langMenu.classList.add('hidden');
+            }
+        });
+
+        /* =====================================================
+           5. TRANSLATION ENGINE (Pure JS)
+        ===================================================== */
+        function changeLanguage(lang) {
+            currentLang = lang;
+            
+            // Update UI display
+            document.querySelectorAll('.current-lang-display').forEach(el => {
+                el.innerText = lang.toUpperCase();
+            });
+
+            // Update all static elements
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                if (translations[lang] && translations[lang][key]) {
+                    element.innerHTML = translations[lang][key];
+                }
+            });
+
+            // Update Placeholder
+            if (searchInput) {
+                searchInput.placeholder = translations[lang]['map_search_placeholder'];
+            }
+
+            // Update Map Panel
+            if (currentMapData) {
+                if (currentMapData.type === 'predefined') {
+                    updateInfoPanel(currentMapData.key);
+                } else if (currentMapData.type === 'searched') {
+                    const tagElement = document.getElementById('map-info-tags');
+                    if (tagElement) {
+                        tagElement.innerHTML = `<span class="bg-earth-100 text-earth-700 px-4 py-1.5 rounded-full text-xs font-semibold">${translations[lang]['map_tag_searched']}</span>`;
+                    }
+                    if (currentMapData.isFallback) {
+                        document.getElementById('map-info-desc').innerText = translations[lang]['map_fallback_desc'].replace('{place}', currentMapData.name);
+                    }
+                }
+            }
+
+            // Update active itinerary day
+            const activeDayBtn = document.querySelector('.tab-btn.active');
+            if (activeDayBtn) {
+                const dayNumber = activeDayBtn.innerText.replace(/\D/g, '') || '1';
+                showDay(dayNumber);
+            }
+
+            // Update map layers
+            updateMapLayers();
+
+            // Update marker popups
+            mapMarkers.forEach(m => {
+                m.marker.setPopupContent(`<b>${translations[lang][m.key]}</b>`);
+            });
+        }
+
+        function updateMapLayers() {
+            if (!leafletMap) return;
+            if (layersControl) {
+                leafletMap.removeControl(layersControl);
+            }
+            const baseLayers = {};
+            baseLayers[translations[currentLang]['layer_streets']]   = streetLayer;
+            baseLayers[translations[currentLang]['layer_satellite']] = satelliteLayer;
+            baseLayers[translations[currentLang]['layer_terrain']]   = terrainLayer;
+            layersControl = L.control.layers(baseLayers, null, { position: 'bottomleft' }).addTo(leafletMap);
+        }
+
+        function showDay(dayNumber) {
+            if (!tabButtons || tabButtons.length === 0) return; 
+
+            tabButtons.forEach((btn, index) => {
+                if (index + 1 === parseInt(dayNumber)) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+
+            const day = itineraryData[currentLang][dayNumber];
+
+            if (!day) return;
+
+            let html = `<div class="day-content active fade-transition" data-aos="fade-up">
+                            <div class="text-center mb-10">
+                                <h3 class="font-serif text-2xl md:text-3xl font-bold text-earth-800 mb-2">${day.subtitle}</h3>
+                                <div class="w-16 h-1 bg-earth-400 mx-auto rounded"></div>
+                            </div>
+                            <div class="grid grid-cols-1 gap-6">`;
+
+            day.items.forEach(item => {
+                let timeLabel = translations[currentLang][item.timeKey];
+                let tipText = translations[currentLang]['tip_label'];
+
+                html += `
+                    <div class="flex flex-col md:flex-row bg-white rounded-2xl border border-earth-100 overflow-hidden shadow-sm hover:shadow-lg transition duration-300">
+                        <div class="w-full md:w-1/3 h-48 md:h-64 bg-earth-100 flex items-center justify-center overflow-hidden">
+                            <img src="${item.img}" alt="${item.title}" class="w-full h-full object-cover hover:scale-105 transition duration-500">
+                        </div>
+                        <div class="p-6 flex-1 flex flex-col justify-center">
+                            <div class="flex items-center gap-3 mb-2">
+                                <span class="text-xs font-bold uppercase tracking-wider text-earth-500 bg-earth-50 px-2 py-1 rounded">${timeLabel}</span>
+                                <i class="fa-solid ${item.icon} text-earth-400"></i>
+                            </div>
+                            <h4 class="font-serif text-xl font-bold text-earth-900 mb-2">${item.title}</h4>
+                            <p class="text-earth-600 text-sm leading-relaxed mb-2">${item.desc}</p>
+                            ${item.tip ? `<div class="bg-earth-50 text-earth-800 text-xs p-3 rounded-lg mt-2 flex gap-2 items-start border border-earth-100"><i class="fa-solid fa-lightbulb mt-0.5 text-earth-500"></i><span><strong>${tipText}</strong> ${item.tip}</span></div>` : ''}
+                        </div>
+                    </div>`;
+            });
+
+            html += `</div></div>`;
+            if (contentArea) contentArea.innerHTML = html;
+            AOS.refresh();
+        }
+
+        function updateInfoPanel(locKey) {
+            const loc = locations[locKey];
+            if (!loc) return;
+            currentMapData = { type: 'predefined', key: locKey };
+
+            document.getElementById('map-info-title').innerText = translations[currentLang][loc.titleKey];
+            document.getElementById('map-info-desc').innerText = translations[currentLang][loc.descKey];
+            document.getElementById('map-info-img').src = loc.img;
+            
+            const tagsContainer = document.getElementById('map-info-tags');
+            tagsContainer.innerHTML = loc.tags.map(tagKey =>
+                `<span class="bg-earth-100 text-earth-700 px-4 py-1.5 rounded-full text-xs font-semibold">${translations[currentLang][tagKey]}</span>`
+            ).join('');
+        }
+
+        function initMap() {
+            leafletMap = L.map('leaflet-map', { zoomControl: false })
+                .setView([31.3000, -7.8000], 8);
+
+            setTimeout(() => { leafletMap.invalidateSize(); }, 800);
+            window.addEventListener('resize', () => { leafletMap.invalidateSize(); });
+
+                        const mapboxToken = 'pk.eyJ1Ijoia2FzYmFodHJhaWxzMTIiLCJhIjoiY213NmNpdmRhMGU2bDMwc2U2ZXllYW45byJ9.AZl8ODQyq6yyURq8DrsUwQ';
+
+streetLayer = L.tileLayer(`https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/256/{z}/{x}/{y}@2x?access_token=${mapboxToken}`, {
+                attribution: '&copy; <a href="https://www.mapbox.com/">Mapbox</a>',
+                tileSize: 512,
+                zoomOffset: -1
+            });
+
+            satelliteLayer = L.tileLayer(`https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/tiles/256/{z}/{x}/{y}@2x?access_token=${mapboxToken}`, { 
+                attribution: '&copy; <a href="https://www.mapbox.com/">Mapbox</a>',
+                tileSize: 512,
+                zoomOffset: -1
+            });
+
+            terrainLayer = L.tileLayer(`https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/tiles/256/{z}/{x}/{y}@2x?access_token=${mapboxToken}`, { 
+                attribution: '&copy; <a href="https://www.mapbox.com/">Mapbox</a>',
+                tileSize: 512,
+                zoomOffset: -1
+            });
+
+            streetLayer.addTo(leafletMap);
+            updateMapLayers();
+            L.control.zoom({ position: 'bottomright' }).addTo(leafletMap);
+            L.control.locate({ position: 'bottomright', flyTo: true }).addTo(leafletMap);
+
+            function showLoading(term) {
+                document.getElementById('map-info-loading').classList.remove('hidden');
+                document.getElementById('map-info-title').innerText = translations[currentLang]['map_searching'];
+                document.getElementById('map-info-desc').innerText = `${translations[currentLang]['map_loading']} ${term}...`;
+            }
+
+            async function fetchLocationInfo(searchTerm) {
+                const cleanTerm = searchTerm.split(',')[0].trim();
+                showLoading(cleanTerm);
+
+                currentMapData = { name: cleanTerm, type: 'searched', isFallback: false };
+
+                const fallbackImage = 'DAY1-2.jpg';
+                const wikiLang = ['en','fr','es','de','it'].includes(currentLang) ? currentLang : 'en';
+
+                try {
+                    const res1 = await fetch(`https://${wikiLang}.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(cleanTerm)}&redirects=1&format=json&origin=*`);
+                    const data1 = await res1.json();
+                    let pageId = Object.keys(data1.query.pages)[0];
+
+                    if (pageId === "-1") {
+                        const res2 = await fetch(`https://${wikiLang}.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(cleanTerm + ' Morocco')}&gsrlimit=1&format=json&origin=*`);
+                        const data2 = await res2.json();
+                        if (data2.query && data2.query.pages) {
+                            pageId = Object.keys(data2.query.pages)[0];
+                        }
+                    }
+
+                    if (pageId && pageId !== "-1") {
+                        const res3 = await fetch(`https://${wikiLang}.wikipedia.org/w/api.php?action=query&pageids=${pageId}&prop=pageimages|extracts&exintro&explaintext&pithumbsize=1000&format=json&origin=*`);
+                        const data3 = await res3.json();
+                        const page = data3.query.pages[pageId];
+
+                        if (page.extract) {
+                            document.getElementById('map-info-title').innerText = page.title;
+                            document.getElementById('map-info-desc').innerText = page.extract.substring(0, 250) + "...";
+
+                            const imgElement = document.getElementById('map-info-img');
+                            imgElement.src = page.thumbnail ? page.thumbnail.source : fallbackImage;
+
+                            document.getElementById('map-info-tags').innerHTML = `
+                                <span class="bg-earth-100 text-earth-700 px-4 py-1.5 rounded-full text-xs font-semibold">${translations[currentLang]['map_tag_searched']}</span>
+                            `;
+                        } else {
+                            throw new Error("No extract found");
+                        }
+                    } else {
+                        throw new Error("No Wikipedia page found");
+                    }
+                } catch (error) {
+                    currentMapData.isFallback = true;
+                    document.getElementById('map-info-title').innerText = cleanTerm;
+                    document.getElementById('map-info-desc').innerText = translations[currentLang]['map_fallback_desc'].replace('{place}', cleanTerm);
+                    document.getElementById('map-info-img').src = fallbackImage;
+                    document.getElementById('map-info-tags').innerHTML = `
+                        <span class="bg-earth-100 text-earth-700 px-4 py-1.5 rounded-full text-xs font-semibold">${translations[currentLang]['map_tag_location']}</span>
+                    `;
+                } finally {
+                    document.getElementById('map-info-loading').classList.add('hidden');
+                }
+            }
+
+            /* --- SEARCH INPUT --- */
+            if (searchInput && suggestionsList) {
+                let searchTimeout;
+
+                searchInput.addEventListener('input', function() {
+                    clearTimeout(searchTimeout);
+                    const query = this.value.trim();
+
+                    if (query.length < 1) {
+                        suggestionsList.classList.add('hidden');
+                        return;
+                    }
+
+                searchTimeout = setTimeout(async () => {
+                    try {
+                        const res = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?country=ma&limit=5&language=${currentLang || 'en'}&access_token=${mapboxToken}`);
+                        const data = await res.json();
+
+                        suggestionsList.innerHTML = '';
+                        if (data.features && data.features.length > 0) {
+                            data.features.forEach(place => {
+                                const cityName = place.text; 
+                                const fullName = place.place_name;
+                                const [lon, lat] = place.center;
+
+                                const li = document.createElement('li');
+                                li.className = "px-5 py-3 hover:bg-earth-50 cursor-pointer border-b border-earth-50 text-sm text-earth-800 transition flex flex-col";
+                                li.innerHTML = `
+                                    <span class="font-semibold text-earth-900 text-base">${cityName}</span>
+                                    <span class="text-[11px] text-earth-400 truncate">${fullName}</span>
+                                `;
+
+                                li.onclick = () => {
+                                    searchInput.value = cityName;
+                                    suggestionsList.classList.add('hidden');
+                                    leafletMap.flyTo([lat, lon], 13, { duration: 2 });
+                                    L.marker([lat, lon]).addTo(leafletMap).bindPopup(cityName).openPopup();
+                                    fetchLocationInfo(cityName);
+                                };
+                                suggestionsList.appendChild(li);
+                            });
+                            suggestionsList.classList.remove('hidden');
+                        } else {
+                            suggestionsList.classList.add('hidden');
+                        }
+                    } catch (err) {
+                        console.error("Search error", err);
+                    }
+                }, 300);
+                });
+                            window.triggerSearch = async function() {
+                const query = searchInput.value.trim();
+                if (!query) return;
+
+                suggestionsList.classList.add('hidden');
+
+                try {
+                    const res = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?country=ma&limit=1&language=${currentLang || 'en'}&access_token=${mapboxToken}`);
+                    const data = await res.json();
+
+                    if (data.features && data.features.length > 0) {
+                        const place = data.features[0];
+                        const cityName = place.text;
+                        const [lon, lat] = place.center;
+
+                        searchInput.value = cityName;
+                        leafletMap.flyTo([lat, lon], 13, { duration: 2 });
+                        L.marker([lat, lon]).addTo(leafletMap).bindPopup(cityName).openPopup();
+                        fetchLocationInfo(cityName);
+                    } else {
+                        fetchLocationInfo(query);
+                    }
+                } catch (err) {
+                    console.error("Search error", err);
+                }
+            };
+
+                document.addEventListener('click', function(e) {
+                    if (!searchInput.contains(e.target) && !suggestionsList.contains(e.target)) {
+                        suggestionsList.classList.add('hidden');
+                    }
+                });
+            }
+
+            /* --- PREDEFINED MARKERS --- */
+            function addMarker(lat, lng, locKey) {
+                let popupText = translations[currentLang][locations[locKey].titleKey];
+
+                const marker = L.marker([lat, lng]).addTo(leafletMap)
+                    .on('click', () => {
+                        updateInfoPanel(locKey);
+                        leafletMap.flyTo([lat, lng], 14, { duration: 1.5 });
+                    })
+                    .bindPopup(`<b>${popupText}</b>`);
+                mapMarkers.push({ marker: marker, key: locations[locKey].titleKey });
+            }
+
+            addMarker(31.6295, -7.9811, 'marrakech');
+            addMarker(31.1366, -7.9194, 'imlil');
+            addMarker(31.3655, -7.7996, 'ourika');
+
+            /* --- INITIAL PANEL --- */
+            updateInfoPanel('marrakech');
+        }
+
+        /* =====================================================
+           6. START SITE
+        ===================================================== */
+        document.addEventListener('DOMContentLoaded', () => {
+            changeLanguage('en'); // Load English by default
+            initMap();
+            showDay(1);
+        });
+    </script>
+</body>
+</html>
