@@ -22,10 +22,6 @@
     
     <!-- AOS (Animations) -->
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-    
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet.locatecontrol/dist/L.Control.Locate.min.css" />
 
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -447,8 +443,9 @@ body {
             
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div class="w-full min-w-0 relative h-[400px] md:h-[550px]">
-                    <div class="absolute top-4 md:top-6 left-1/2 transform -translate-x-1/2 z-[1000] w-[90%] max-w-sm md:max-w-md">
-                        <div class="relative shadow-xl rounded-full">
+                    <!-- Search Bar inside Map (Top Right) -->
+                    <div class="absolute top-4 right-4 z-[1000] w-[45%] md:w-[260px] lg:w-[300px]">
+                    <div class="relative shadow-xl rounded-full">
                             <input type="text" id="custom-search" autocomplete="off" class="w-full px-5 py-2.5 md:py-3 rounded-full border border-earth-200 focus:outline-none focus:ring-2 focus:ring-earth-500 font-sans text-earth-900 placeholder-earth-400 pl-12 text-sm md:text-base" placeholder="Search (e.g. Rabat...)" >
                              <button type="button" onclick="triggerSearch()" class="absolute left-4 top-1/2 transform -translate-y-1/2 text-earth-400 hover:text-earth-600 transition-colors duration-200 z-10">
                              <i class="fa-solid fa-search text-lg"></i>
@@ -456,7 +453,20 @@ body {
                             <ul id="custom-suggestions" class="absolute w-full mt-2 bg-white rounded-2xl shadow-2xl overflow-hidden hidden z-[1001] max-h-60 overflow-y-auto border border-earth-100"></ul>
                         </div>
                     </div>
-                    <div id="leaflet-map" class="w-full h-full rounded-3xl shadow-xl border-4 border-white z-0 relative"></div>
+                    
+                    <!-- Map Container -->
+                    <div class="w-full h-full rounded-3xl shadow-xl border-4 border-white z-0 relative overflow-hidden bg-earth-100">
+                        <iframe 
+                            id="google-map-iframe"
+                            width="100%" 
+                            height="100%" 
+                            style="border:0;" 
+                            allowfullscreen="" 
+                            loading="lazy" 
+                            referrerpolicy="no-referrer-when-downgrade"
+                            src="https://maps.google.com/maps?q=Marrakech&t=&z=11&ie=UTF8&iwloc=&output=embed">
+                        </iframe>
+                    </div>
                 </div>
                 
                 <div class="bg-white rounded-3xl border border-earth-100 h-auto md:h-[550px] overflow-hidden shadow-xl flex flex-col relative min-w-0">
@@ -645,8 +655,6 @@ body {
 
     <!-- SCRIPTS -->
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/leaflet.locatecontrol/dist/L.Control.Locate.min.js"></script>
 
     <script>
         /* =====================================================
@@ -894,6 +902,123 @@ body {
         let currentLang = 'en';
         let currentMapData = null;
         let leafletMap = null;
+        let currentPlaceData = null;
+
+        // Helper function to translate text
+        async function translateText(text, targetLang) {
+            if (targetLang === 'en' || !text) return text;
+            try {
+                const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`);
+                const data = await res.json();
+                if (data && data[0]) {
+                    let translated = '';
+                    data[0].forEach(item => {
+                        if (item[0]) translated += item[0];
+                    });
+                    return translated;
+                }
+                return text;
+            } catch(e) {
+                return text; // Fallback to English if translation fails
+            }
+        }
+
+        // Helper function to translate text
+        async function translateText(text, targetLang) {
+            if (targetLang === 'en' || !text) return text;
+            try {
+                const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`);
+                const data = await res.json();
+                if (data && data[0]) {
+                    let translated = '';
+                    data[0].forEach(item => {
+                        if (item[0]) translated += item[0];
+                    });
+                    return translated;
+                }
+                return text;
+            } catch(e) {
+                return text;
+            }
+        }
+
+        async function fetchWikiInfo(placeName, lat, lon, wikiTag) {
+            let baseTitle = placeName;
+            if (wikiTag && wikiTag.includes(':')) {
+                baseTitle = wikiTag.split(':')[1];
+            }
+
+            const isNewPlace = (!currentPlaceData || currentPlaceData.name !== placeName);
+
+            // --- 1. HANDLE THE IMAGE (Only if it's a NEW place) ---
+            if (isNewPlace) {
+                currentPlaceData = { name: placeName, image: 'DAY1-2.jpg', textEn: '' };
+                document.getElementById('map-info-img').src = 'DAY1-2.jpg';
+                document.getElementById('map-info-title').innerText = placeName;
+                document.getElementById('map-info-loading').classList.remove('hidden');
+
+                try {
+                    // A. Try Wikipedia for the exact page image
+                    let imgUrl = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(baseTitle)}&prop=pageimages&pithumbsize=1000&format=json&origin=*&redirects=1`;
+                    let imgRes = await fetch(imgUrl);
+                    let imgData = await imgRes.json();
+                    
+                    let imageFound = false;
+                    if (imgData.query && imgData.query.pages) {
+                        const pid = Object.keys(imgData.query.pages)[0];
+                        if (pid !== "-1" && imgData.query.pages[pid].thumbnail) {
+                            currentPlaceData.image = imgData.query.pages[pid].thumbnail.source;
+                            document.getElementById('map-info-img').src = currentPlaceData.image;
+                            imageFound = true;
+                        }
+                    }
+
+                    // B. If no Wikipedia image, use Wikimedia Commons Geosearch (Finds real photos near the exact coordinates)
+                    if (!imageFound && lat && lon) {
+                        let commonsUrl = `https://commons.wikimedia.org/w/api.php?action=query&generator=geosearch&ggscoord=${lat}|${lon}&ggsradius=10000&ggslimit=1&prop=imageinfo&iiprop=url&iiurlwidth=800&format=json&origin=*`;
+                        let commonsRes = await fetch(commonsUrl);
+                        let commonsData = await commonsRes.json();
+                        
+                        if (commonsData.query && commonsData.query.pages) {
+                            const pid = Object.keys(commonsData.query.pages)[0];
+                            const page = commonsData.query.pages[pid];
+                            if (page.imageinfo && page.imageinfo[0] && page.imageinfo[0].thumburl) {
+                                currentPlaceData.image = page.imageinfo[0].thumburl;
+                                document.getElementById('map-info-img').src = currentPlaceData.image;
+                            }
+                        }
+                    }
+
+                    // C. Fetch English text
+                    let url = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(baseTitle)}&prop=extracts&exintro&explaintext&format=json&origin=*&redirects=1`;
+                    let res = await fetch(url);
+                    let data = await res.json();
+                    
+                    if (data.query && data.query.pages) {
+                        const pid = Object.keys(data.query.pages)[0];
+                        if (pid !== "-1" && data.query.pages[pid].extract) {
+                            currentPlaceData.textEn = data.query.pages[pid].extract.substring(0, 300) + "...";
+                        }
+                    }
+                    
+                    if (!currentPlaceData.textEn) {
+                        currentPlaceData.textEn = "A beautiful location in Morocco. Explore the map to see nearby hotels and exact location details."; 
+                    }
+
+                } catch (err) {
+                    currentPlaceData.textEn = "A beautiful location in Morocco. Explore the map to see nearby hotels and exact location details.";
+                }
+            }
+
+            // --- 2. HANDLE THE TEXT TRANSLATION ---
+            document.getElementById('map-info-desc').innerText = translations[currentLang]['map_searching'] || "Translating...";
+            document.getElementById('map-info-tags').innerHTML = `<span class="bg-earth-100 text-earth-700 px-4 py-1.5 rounded-full text-xs font-semibold">${translations[currentLang]['map_tag_location'] || 'Location'}</span>`;
+
+            let finalText = await translateText(currentPlaceData.textEn, currentLang);
+            
+            document.getElementById('map-info-desc').innerText = finalText;
+            document.getElementById('map-info-loading').classList.add('hidden');
+        }         
         let streetLayer, satelliteLayer, terrainLayer, layersControl = null;
         const mapMarkers = []; 
 
@@ -958,6 +1083,11 @@ body {
         ===================================================== */
         function changeLanguage(lang) {
             currentLang = lang;
+
+            // Only refresh info if a place has actually been searched for
+            if (currentPlaceData) {
+fetchWikiInfo(currentPlaceData.name);
+            }
             
             // Update UI display
             document.querySelectorAll('.current-lang-display').forEach(el => {
@@ -1084,100 +1214,8 @@ body {
         }
 
         function initMap() {
-            leafletMap = L.map('leaflet-map', { zoomControl: false })
-                .setView([31.3000, -7.8000], 8);
+            const iframe = document.getElementById('google-map-iframe');
 
-            setTimeout(() => { leafletMap.invalidateSize(); }, 800);
-            window.addEventListener('resize', () => { leafletMap.invalidateSize(); });
-
-                        const mapboxToken = 'pk.eyJ1Ijoia2FzYmFodHJhaWxzMTIiLCJhIjoiY213NmNpdmRhMGU2bDMwc2U2ZXllYW45byJ9.AZl8ODQyq6yyURq8DrsUwQ';
-
-streetLayer = L.tileLayer(`https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/256/{z}/{x}/{y}@2x?access_token=${mapboxToken}`, {
-                attribution: '&copy; <a href="https://www.mapbox.com/">Mapbox</a>',
-                tileSize: 512,
-                zoomOffset: -1
-            });
-
-            satelliteLayer = L.tileLayer(`https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/tiles/256/{z}/{x}/{y}@2x?access_token=${mapboxToken}`, { 
-                attribution: '&copy; <a href="https://www.mapbox.com/">Mapbox</a>',
-                tileSize: 512,
-                zoomOffset: -1
-            });
-
-            terrainLayer = L.tileLayer(`https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/tiles/256/{z}/{x}/{y}@2x?access_token=${mapboxToken}`, { 
-                attribution: '&copy; <a href="https://www.mapbox.com/">Mapbox</a>',
-                tileSize: 512,
-                zoomOffset: -1
-            });
-
-            streetLayer.addTo(leafletMap);
-            updateMapLayers();
-            L.control.zoom({ position: 'bottomright' }).addTo(leafletMap);
-            L.control.locate({ position: 'bottomright', flyTo: true }).addTo(leafletMap);
-
-            function showLoading(term) {
-                document.getElementById('map-info-loading').classList.remove('hidden');
-                document.getElementById('map-info-title').innerText = translations[currentLang]['map_searching'];
-                document.getElementById('map-info-desc').innerText = `${translations[currentLang]['map_loading']} ${term}...`;
-            }
-
-            async function fetchLocationInfo(searchTerm) {
-                const cleanTerm = searchTerm.split(',')[0].trim();
-                showLoading(cleanTerm);
-
-                currentMapData = { name: cleanTerm, type: 'searched', isFallback: false };
-
-                const fallbackImage = 'DAY1-2.jpg';
-                const wikiLang = ['en','fr','es','de','it'].includes(currentLang) ? currentLang : 'en';
-
-                try {
-                    const res1 = await fetch(`https://${wikiLang}.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(cleanTerm)}&redirects=1&format=json&origin=*`);
-                    const data1 = await res1.json();
-                    let pageId = Object.keys(data1.query.pages)[0];
-
-                    if (pageId === "-1") {
-                        const res2 = await fetch(`https://${wikiLang}.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(cleanTerm + ' Morocco')}&gsrlimit=1&format=json&origin=*`);
-                        const data2 = await res2.json();
-                        if (data2.query && data2.query.pages) {
-                            pageId = Object.keys(data2.query.pages)[0];
-                        }
-                    }
-
-                    if (pageId && pageId !== "-1") {
-                        const res3 = await fetch(`https://${wikiLang}.wikipedia.org/w/api.php?action=query&pageids=${pageId}&prop=pageimages|extracts&exintro&explaintext&pithumbsize=1000&format=json&origin=*`);
-                        const data3 = await res3.json();
-                        const page = data3.query.pages[pageId];
-
-                        if (page.extract) {
-                            document.getElementById('map-info-title').innerText = page.title;
-                            document.getElementById('map-info-desc').innerText = page.extract.substring(0, 250) + "...";
-
-                            const imgElement = document.getElementById('map-info-img');
-                            imgElement.src = page.thumbnail ? page.thumbnail.source : fallbackImage;
-
-                            document.getElementById('map-info-tags').innerHTML = `
-                                <span class="bg-earth-100 text-earth-700 px-4 py-1.5 rounded-full text-xs font-semibold">${translations[currentLang]['map_tag_searched']}</span>
-                            `;
-                        } else {
-                            throw new Error("No extract found");
-                        }
-                    } else {
-                        throw new Error("No Wikipedia page found");
-                    }
-                } catch (error) {
-                    currentMapData.isFallback = true;
-                    document.getElementById('map-info-title').innerText = cleanTerm;
-                    document.getElementById('map-info-desc').innerText = translations[currentLang]['map_fallback_desc'].replace('{place}', cleanTerm);
-                    document.getElementById('map-info-img').src = fallbackImage;
-                    document.getElementById('map-info-tags').innerHTML = `
-                        <span class="bg-earth-100 text-earth-700 px-4 py-1.5 rounded-full text-xs font-semibold">${translations[currentLang]['map_tag_location']}</span>
-                    `;
-                } finally {
-                    document.getElementById('map-info-loading').classList.add('hidden');
-                }
-            }
-
-            /* --- SEARCH INPUT --- */
             if (searchInput && suggestionsList) {
                 let searchTimeout;
 
@@ -1190,69 +1228,74 @@ streetLayer = L.tileLayer(`https://api.mapbox.com/styles/v1/mapbox/streets-v12/t
                         return;
                     }
 
-                searchTimeout = setTimeout(async () => {
+                    searchTimeout = setTimeout(async () => {
+                        try {
+                            // Added extratags=1 to get exact Wikipedia tags from the map data
+                            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=ma&addressdetails=1&extratags=1&limit=5`);
+                            const data = await res.json();
+
+                            suggestionsList.innerHTML = '';
+                            if (data.length > 0) {
+                                data.forEach(place => {
+                                    const cityName = place.address?.city || place.address?.town || place.address?.village || place.address?.municipality || place.name || place.display_name.split(',')[0];
+                                    const lat = place.lat;
+                                    const lon = place.lon;
+                                    const wikiTag = place.extratags?.wikipedia || null;
+
+                                    const li = document.createElement('li');
+                                    li.className = "px-5 py-3 hover:bg-earth-50 cursor-pointer border-b border-earth-50 text-sm text-earth-800 transition flex flex-col";
+                                    li.innerHTML = `
+                                        <span class="font-semibold text-earth-900 text-base">${cityName}</span>
+                                        <span class="text-[11px] text-earth-400 truncate">${place.display_name}</span>
+                                    `;
+
+                                    li.onclick = () => {
+                                        searchInput.value = cityName;
+                                        suggestionsList.classList.add('hidden');
+                                        
+                                        // Use exact coordinates for the map
+                                        iframe.src = `https://maps.google.com/maps?q=${lat},${lon}&t=&z=13&ie=UTF8&iwloc=&output=embed`;
+                                        
+                                        fetchWikiInfo(cityName);
+                                    };
+                                    suggestionsList.appendChild(li);
+                                });
+                                suggestionsList.classList.remove('hidden');
+                            } else {
+                                suggestionsList.classList.add('hidden');
+                            }
+                        } catch (err) {
+                            console.error("Search error", err);
+                        }
+                    }, 300); // Reduced delay to 300ms for faster results
+                });
+
+                window.triggerSearch = async function() {
+                    const query = searchInput.value.trim();
+                    if (!query) return;
+
+                    suggestionsList.classList.add('hidden');
+
                     try {
-                        const res = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?country=ma&limit=5&language=${currentLang || 'en'}&access_token=${mapboxToken}`);
+                        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=ma&extratags=1&limit=1`);
                         const data = await res.json();
 
-                        suggestionsList.innerHTML = '';
-                        if (data.features && data.features.length > 0) {
-                            data.features.forEach(place => {
-                                const cityName = place.text; 
-                                const fullName = place.place_name;
-                                const [lon, lat] = place.center;
+                        if (data.length > 0) {
+                            const place = data[0];
+                            const cityName = place.address?.city || place.address?.town || place.address?.village || place.address?.municipality || place.name || place.display_name.split(',')[0];
+                            const lat = place.lat;
+                            const lon = place.lon;
+                            const wikiTag = place.extratags?.wikipedia || null;
 
-                                const li = document.createElement('li');
-                                li.className = "px-5 py-3 hover:bg-earth-50 cursor-pointer border-b border-earth-50 text-sm text-earth-800 transition flex flex-col";
-                                li.innerHTML = `
-                                    <span class="font-semibold text-earth-900 text-base">${cityName}</span>
-                                    <span class="text-[11px] text-earth-400 truncate">${fullName}</span>
-                                `;
-
-                                li.onclick = () => {
-                                    searchInput.value = cityName;
-                                    suggestionsList.classList.add('hidden');
-                                    leafletMap.flyTo([lat, lon], 13, { duration: 2 });
-                                    L.marker([lat, lon]).addTo(leafletMap).bindPopup(cityName).openPopup();
-                                    fetchLocationInfo(cityName);
-                                };
-                                suggestionsList.appendChild(li);
-                            });
-                            suggestionsList.classList.remove('hidden');
-                        } else {
-                            suggestionsList.classList.add('hidden');
+                            searchInput.value = cityName;
+                            iframe.src = `https://maps.google.com/maps?q=${lat},${lon}&t=&z=13&ie=UTF8&iwloc=&output=embed`;
+                            
+                            fetchWikiInfo(cityName);
                         }
                     } catch (err) {
                         console.error("Search error", err);
                     }
-                }, 300);
-                });
-                            window.triggerSearch = async function() {
-                const query = searchInput.value.trim();
-                if (!query) return;
-
-                suggestionsList.classList.add('hidden');
-
-                try {
-                    const res = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?country=ma&limit=1&language=${currentLang || 'en'}&access_token=${mapboxToken}`);
-                    const data = await res.json();
-
-                    if (data.features && data.features.length > 0) {
-                        const place = data.features[0];
-                        const cityName = place.text;
-                        const [lon, lat] = place.center;
-
-                        searchInput.value = cityName;
-                        leafletMap.flyTo([lat, lon], 13, { duration: 2 });
-                        L.marker([lat, lon]).addTo(leafletMap).bindPopup(cityName).openPopup();
-                        fetchLocationInfo(cityName);
-                    } else {
-                        fetchLocationInfo(query);
-                    }
-                } catch (err) {
-                    console.error("Search error", err);
-                }
-            };
+                };
 
                 document.addEventListener('click', function(e) {
                     if (!searchInput.contains(e.target) && !suggestionsList.contains(e.target)) {
@@ -1260,35 +1303,18 @@ streetLayer = L.tileLayer(`https://api.mapbox.com/styles/v1/mapbox/streets-v12/t
                     }
                 });
             }
-
-            /* --- PREDEFINED MARKERS --- */
-            function addMarker(lat, lng, locKey) {
-                let popupText = translations[currentLang][locations[locKey].titleKey];
-
-                const marker = L.marker([lat, lng]).addTo(leafletMap)
-                    .on('click', () => {
-                        updateInfoPanel(locKey);
-                        leafletMap.flyTo([lat, lng], 14, { duration: 1.5 });
-                    })
-                    .bindPopup(`<b>${popupText}</b>`);
-                mapMarkers.push({ marker: marker, key: locations[locKey].titleKey });
-            }
-
-            addMarker(31.6295, -7.9811, 'marrakech');
-            addMarker(31.1366, -7.9194, 'imlil');
-            addMarker(31.3655, -7.7996, 'ourika');
-
-            /* --- INITIAL PANEL --- */
-            updateInfoPanel('marrakech');
-        }
+        }               
 
         /* =====================================================
            6. START SITE
         ===================================================== */
         document.addEventListener('DOMContentLoaded', () => {
-            changeLanguage('en'); // Load English by default
-            initMap();
+            changeLanguage('en');
             showDay(1);
+            initMap();
+            
+            // Load real Marrakech info by default on page load
+            fetchWikiInfo("Marrakech", 31.6295, -7.9811, "en:Marrakech");
         });
     </script>
 </body>
